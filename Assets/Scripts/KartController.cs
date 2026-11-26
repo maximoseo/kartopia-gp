@@ -108,12 +108,12 @@ public class KartController : MonoBehaviour
             if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) steer += 1f;
             drift = kb.spaceKey.isPressed;
         }
-        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed)
-        {
-            var pos = Touchscreen.current.primaryTouch.position.ReadValue();
-            throttle = 1f;
-            steer = Mathf.Clamp((pos.x / Mathf.Max(Screen.width, 1) - 0.5f) * 2.4f, -1f, 1f);
-        }
+        if (TouchControls.Gas) throttle = 1f;
+        if (TouchControls.Brake) throttle = -0.6f;
+        if (TouchControls.Left) steer -= 1f;
+        if (TouchControls.Right) steer += 1f;
+        if (TouchControls.Drift) drift = true;
+        steer = Mathf.Clamp(steer, -1f, 1f);
 
         if (_shieldBubble != null && _shieldBubble.activeSelf && !ShieldActive)
             _shieldBubble.SetActive(false);

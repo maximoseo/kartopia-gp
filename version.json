@@ -1,8 +1,8 @@
 {
-  "version": "0.8.2",
-  "versionCode": 14,
+  "version": "0.8.3",
+  "versionCode": 15,
   "apk": "KartopiaGP.apk",
-  "sha256": "33d1676190eadcbcaf9c6e169061b5b227c11bb4db706acf7ba3820427f12b0e",
-  "size": 49515069,
-  "notes": "Blender round trees and snow-capped mountain ridges, checkered start line, logo banners on grandstands."
+  "sha256": "793ffea7ed04c1aeea23b96d7863f60987966ab5bae62a20a04687020e372050",
+  "size": 49516153,
+  "notes": "Mobile touch controls: on-screen steering, GAS, BRK, DRIFT and pause buttons."
 }

@@ -34,6 +34,7 @@ public class Hud : MonoBehaviour
         _resultsPanel.SetActive(false);
 
         BuildMinimap(canvasObj.transform);
+        BuildTouchButtons(canvasObj.transform);
 
         // boost bar bottom-right
         var bg = new GameObject("BoostBg");
@@ -50,6 +51,49 @@ public class Hud : MonoBehaviour
         fillRt.anchorMin = new Vector2(0f, 0f); fillRt.anchorMax = new Vector2(0f, 1f);
         fillRt.offsetMin = Vector2.zero; fillRt.offsetMax = new Vector2(0f, 0f);
         fillRt.sizeDelta = new Vector2(0f, 0f);
+    }
+
+    void BuildTouchButtons(Transform parent)
+    {
+        MakeTouchButton(parent, "left", "<", new Vector2(0f, 0f), new Vector2(95f, 150f), new Vector2(90f, 90f));
+        MakeTouchButton(parent, "right", ">", new Vector2(0f, 0f), new Vector2(205f, 150f), new Vector2(90f, 90f));
+        MakeTouchButton(parent, "drift", "DRIFT", new Vector2(1f, 0f), new Vector2(-300f, 150f), new Vector2(110f, 90f));
+        MakeTouchButton(parent, "brake", "BRK", new Vector2(1f, 0f), new Vector2(-185f, 150f), new Vector2(90f, 90f));
+        MakeTouchButton(parent, "gas", "GAS", new Vector2(1f, 0f), new Vector2(-80f, 165f), new Vector2(100f, 120f));
+        var pauseBtn = MakeTouchButton(parent, "pause", "II", new Vector2(0f, 1f), new Vector2(55f, -55f), new Vector2(64f, 64f));
+        var pauseTouch = pauseBtn.GetComponent<TouchButton>();
+        if (pauseTouch != null) Destroy(pauseTouch);
+        pauseBtn.GetComponent<Button>().onClick.AddListener(TogglePause);
+    }
+
+    GameObject MakeTouchButton(Transform parent, string action, string label, Vector2 anchor, Vector2 pos, Vector2 size)
+    {
+        var obj = new GameObject("Btn_" + action);
+        obj.transform.SetParent(parent);
+        var img = obj.AddComponent<Image>();
+        img.color = action == "gas" ? new Color(0.15f, 0.75f, 0.25f, 0.55f)
+            : action == "brake" ? new Color(0.9f, 0.2f, 0.15f, 0.55f)
+            : new Color(0.05f, 0.1f, 0.25f, 0.5f);
+        obj.AddComponent<Button>();
+        var tb = obj.AddComponent<TouchButton>();
+        tb.action = action;
+        var rt = obj.GetComponent<RectTransform>();
+        rt.anchorMin = rt.anchorMax = anchor;
+        rt.anchoredPosition = pos;
+        rt.sizeDelta = size;
+        var textObj = new GameObject("Label");
+        textObj.transform.SetParent(obj.transform);
+        var text = textObj.AddComponent<Text>();
+        text.text = label;
+        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        text.fontSize = label.Length > 2 ? 24 : 40;
+        text.fontStyle = FontStyle.Bold;
+        text.alignment = TextAnchor.MiddleCenter;
+        text.color = Color.white;
+        var trt = textObj.GetComponent<RectTransform>();
+        trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 0.5f);
+        trt.sizeDelta = size;
+        return obj;
     }
 
     void BuildMinimap(Transform parent)
