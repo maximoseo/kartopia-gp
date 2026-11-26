@@ -764,8 +764,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/CanyonTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.8.3";
-        PlayerSettings.Android.bundleVersionCode = 15;
+        PlayerSettings.bundleVersion = "0.8.4";
+        PlayerSettings.Android.bundleVersionCode = 16;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });
