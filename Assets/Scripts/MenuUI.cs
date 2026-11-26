@@ -44,8 +44,10 @@ public class MenuUI : MonoBehaviour
         }
         MakeText(canvasObj.transform, "KARTOPIA GP", 72, new Vector2(0f, 62f), new Color(1f, 0.8f, 0.15f), true);
         MakeText(canvasObj.transform, "3 LAPS - DRIFT BOOST - ITEM BOXES", 24, new Vector2(0f, 14f), Color.white, false);
-        var start = MakeButton(canvasObj.transform, "START RACE", new Vector2(0f, -40f));
+        var start = MakeButton(canvasObj.transform, "SEASIDE LOOP", new Vector2(-200f, -40f));
         start.onClick.AddListener(() => SceneManager.LoadScene("KartTrack"));
+        var canyon = MakeButton(canvasObj.transform, "CANDY CANYON", new Vector2(200f, -40f));
+        canyon.onClick.AddListener(() => SceneManager.LoadScene("CanyonTrack"));
         MakeText(canvasObj.transform, "WASD / Arrows - drive   SPACE - drift   Touch - steer", 20, new Vector2(0f, -300f), new Color(1, 1, 1, 0.8f), false);
     }
 
@@ -76,7 +78,7 @@ public class MenuUI : MonoBehaviour
         var rt = obj.GetComponent<RectTransform>();
         rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
         rt.anchoredPosition = pos;
-        rt.sizeDelta = new Vector2(380f, 90f);
+        rt.sizeDelta = new Vector2(340f, 90f);
         var text = MakeText(obj.transform, label, 36, Vector2.zero, Color.white, true);
         return btn;
     }

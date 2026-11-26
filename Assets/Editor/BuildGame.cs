@@ -98,6 +98,20 @@ public static class BuildGame
         return pts;
     }
 
+    static List<Vector3> PointsFor(string trackId)
+    {
+        if (trackId != "canyon") return LoopPoints();
+        var pts = new List<Vector3>();
+        int n = 96;
+        for (int i = 0; i < n; i++)
+        {
+            float a = i / (float)n * Mathf.PI * 2f;
+            float r = 80f + 20f * Mathf.Sin(a * 2f + 1.3f) + 10f * Mathf.Sin(a * 6f);
+            pts.Add(new Vector3(Mathf.Cos(a) * r, 4.2f * Mathf.Sin(a * 3f), Mathf.Sin(a) * r));
+        }
+        return pts;
+    }
+
     static void BuildRoad(List<Vector3> pts, float width, Material mat)
     {
         int n = pts.Count;
@@ -173,9 +187,10 @@ public static class BuildGame
     }
 
     [MenuItem("Kartopia/Build Game + Android APK")]
-    public static void BuildAll()
+    static void BuildTrackScene(string trackId)
     {
-        var pts = LoopPoints();
+        var pts = PointsFor(trackId);
+        float roadWidth = trackId == "canyon" ? 9.5f : 11f;
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         var sun = new GameObject("Sun").AddComponent<Light>();
@@ -203,7 +218,7 @@ public static class BuildGame
             volume.sharedProfile = profile;
         }
 
-        var skyTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/sky.png");
+        var skyTex = AssetDatabase.LoadAssetAtPath<Texture2D>(trackId == "canyon" ? "Assets/Art/canyon_sky.png" : "Assets/Art/sky.png");
         if (skyTex != null)
         {
             var skyMat = new Material(Shader.Find("Skybox/Panoramic"));
@@ -229,7 +244,7 @@ public static class BuildGame
         var roadTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/road.png");
         var asphalt = Mat("Asphalt", new Color(0.55f, 0.55f, 0.62f), 0.05f, 0.35f, roadTex);
         if (roadTex != null) asphalt.SetTextureScale("_BaseMap", new Vector2(1f, 1f));
-        BuildRoad(pts, 11f, asphalt);
+        BuildRoad(pts, roadWidth, asphalt);
         // ocean + beach background
         var ocean = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         ocean.name = "Ocean";
@@ -377,7 +392,7 @@ public static class BuildGame
 
         var trackObj = new GameObject("TrackPath");
         var track = trackObj.AddComponent<TrackPath>();
-        track.Build(pts.ToArray(), 11f);
+        track.Build(pts.ToArray(), roadWidth);
 
         // start line
         var startTan = (pts[3] - pts[1]).normalized;
@@ -658,7 +673,20 @@ public static class BuildGame
         chase.target = player.transform;
 
         Directory.CreateDirectory("Assets/Scenes");
-        EditorSceneManager.SaveScene(scene, "Assets/Scenes/KartTrack.unity");
+        EditorSceneManager.SaveScene(scene, trackId == "canyon" ? "Assets/Scenes/CanyonTrack.unity" : "Assets/Scenes/KartTrack.unity");
+    }
+
+    [MenuItem("Kartopia/Build Game + Android APK")]
+    public static void BuildAll()
+    {
+        BuildTrackScene("seaside");
+        _kartPaintIndex = 0;
+        BuildTrackScene("canyon");
+        BuildMenuAndApk();
+    }
+
+    static void BuildMenuAndApk()
+    {
 
         var menuScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         var menuCam = new GameObject("MenuCamera").AddComponent<Camera>();
@@ -673,11 +701,12 @@ public static class BuildGame
         EditorBuildSettings.scenes = new[]
         {
             new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true),
-            new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
+            new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true),
+            new EditorBuildSettingsScene("Assets/Scenes/CanyonTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.7.0";
-        PlayerSettings.Android.bundleVersionCode = 11;
+        PlayerSettings.bundleVersion = "0.8.0";
+        PlayerSettings.Android.bundleVersionCode = 12;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });
@@ -695,7 +724,7 @@ public static class BuildGame
         Directory.CreateDirectory("Builds");
         var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
         {
-            scenes = new[] { "Assets/Scenes/MainMenu.unity", "Assets/Scenes/KartTrack.unity" },
+            scenes = new[] { "Assets/Scenes/MainMenu.unity", "Assets/Scenes/KartTrack.unity", "Assets/Scenes/CanyonTrack.unity" },
             locationPathName = "Builds/KartopiaGP.apk",
             target = BuildTarget.Android,
             options = BuildOptions.None

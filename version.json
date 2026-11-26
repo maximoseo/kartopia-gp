@@ -1,8 +1,8 @@
 {
-  "version": "0.7.0",
-  "versionCode": 11,
+  "version": "0.8.0",
+  "versionCode": 12,
   "apk": "KartopiaGP.apk",
-  "sha256": "8352bbbf0737760763e676edc18c31325e4546814c6d58af69af63f65cc46eda",
-  "size": 48215833,
-  "notes": "Graphics leap: Blender kart v4 (steering wheel, mirrors, front wing, diffuser, roundels), continuous red/white guardrails, edge lines, center dashes, beach umbrellas."
+  "sha256": "861e2ac8b9188025b03012383c72b7c3413c28316a526063279e113dcda87581",
+  "size": 49412447,
+  "notes": "Second track: Candy Canyon at sunset with its own circuit shape, narrower road and menu track selection."
 }
