@@ -24,6 +24,67 @@ public static class BuildGame
         return mat;
     }
 
+
+    static void BuildWallRibbon(List<Vector3> pts, float sideOffset, float height, Material mat, bool evenSegments)
+    {
+        int n = pts.Count;
+        var verts = new List<Vector3>();
+        var tris = new List<int>();
+        for (int i = 0; i < n; i++)
+        {
+            if ((i % 2 == 0) != evenSegments) continue;
+            var p0 = pts[i];
+            var p1 = pts[(i + 1) % n];
+            var tan0 = (p1 - pts[(i - 1 + n) % n]).normalized;
+            var side0 = new Vector3(tan0.z, 0f, -tan0.x).normalized;
+            var tan1 = (pts[(i + 2) % n] - p0).normalized;
+            var side1 = new Vector3(tan1.z, 0f, -tan1.x).normalized;
+            int baseIdx = verts.Count;
+            verts.Add(p0 + side0 * sideOffset);
+            verts.Add(p0 + side0 * sideOffset + Vector3.up * height);
+            verts.Add(p1 + side1 * sideOffset);
+            verts.Add(p1 + side1 * sideOffset + Vector3.up * height);
+            tris.Add(baseIdx); tris.Add(baseIdx + 2); tris.Add(baseIdx + 1);
+            tris.Add(baseIdx + 1); tris.Add(baseIdx + 2); tris.Add(baseIdx + 3);
+        }
+        var mesh = new Mesh { name = "Guardrail" };
+        mesh.vertices = verts.ToArray(); mesh.triangles = tris.ToArray();
+        mesh.RecalculateNormals();
+        var obj = new GameObject("Guardrail");
+        obj.AddComponent<MeshFilter>().sharedMesh = mesh;
+        obj.AddComponent<MeshRenderer>().sharedMaterial = mat;
+    }
+
+    static void BuildFlatRibbon(List<Vector3> pts, float sideOffset, float halfWidth, float y, Material mat, int step = 1, int skipMod = -1)
+    {
+        int n = pts.Count;
+        var verts = new List<Vector3>();
+        var tris = new List<int>();
+        for (int i = 0; i < n; i += step)
+        {
+            if (skipMod >= 0 && (i / step) % (skipMod + 1) == skipMod) continue;
+            var p0 = pts[i];
+            var p1 = pts[(i + step) % n];
+            var tan0 = (p1 - pts[(i - 1 + n) % n]).normalized;
+            var side0 = new Vector3(tan0.z, 0f, -tan0.x).normalized;
+            var tan1 = (pts[(i + step + 1) % n] - p0).normalized;
+            var side1 = new Vector3(tan1.z, 0f, -tan1.x).normalized;
+            int baseIdx = verts.Count;
+            verts.Add(p0 + side0 * (sideOffset - halfWidth) + Vector3.up * y);
+            verts.Add(p0 + side0 * (sideOffset + halfWidth) + Vector3.up * y);
+            verts.Add(p1 + side1 * (sideOffset - halfWidth) + Vector3.up * y);
+            verts.Add(p1 + side1 * (sideOffset + halfWidth) + Vector3.up * y);
+            tris.Add(baseIdx); tris.Add(baseIdx + 1); tris.Add(baseIdx + 2);
+            tris.Add(baseIdx + 1); tris.Add(baseIdx + 3); tris.Add(baseIdx + 2);
+        }
+        var mesh = new Mesh { name = "TrackRibbon" };
+        mesh.vertices = verts.ToArray(); mesh.triangles = tris.ToArray();
+        mesh.RecalculateNormals();
+        var obj = new GameObject("TrackRibbon");
+        obj.AddComponent<MeshFilter>().sharedMesh = mesh;
+        obj.AddComponent<MeshRenderer>().sharedMaterial = mat;
+    }
+
     static List<Vector3> LoopPoints()
     {
         var pts = new List<Vector3>();
@@ -278,6 +339,40 @@ public static class BuildGame
             zone.GetComponent<MeshRenderer>().sharedMaterial = sandZoneMat;
             zone.GetComponent<BoxCollider>().isTrigger = true;
             zone.AddComponent<SlowZone>();
+        }
+
+        // continuous guardrails (red/white segments) + edge lines + center dashes
+        var railRed = Mat("RailRed", new Color(0.9f, 0.08f, 0.08f), 0.25f, 0.55f);
+        var railWhite = Mat("RailWhite", new Color(0.95f, 0.95f, 0.92f), 0.25f, 0.55f);
+        var lineMat = Mat("EdgeLine", new Color(1f, 1f, 1f), 0f, 0.45f);
+        foreach (var railSide in new[] { -6.1f, 6.1f })
+        {
+            BuildWallRibbon(pts, railSide, 0.55f, railRed, true);
+            BuildWallRibbon(pts, railSide, 0.55f, railWhite, false);
+            BuildFlatRibbon(pts, railSide * 0.86f, 0.22f, 0.09f, lineMat);
+        }
+        BuildFlatRibbon(pts, 0f, 0.28f, 0.09f, lineMat, 2, 1);
+
+        // beach umbrellas + balls on the sand
+        var umbrellaMats = new[] { Mat("UmbrellaA", new Color(1f, 0.35f, 0.25f), 0f, 0.5f), Mat("UmbrellaB", new Color(0.2f, 0.75f, 0.95f), 0f, 0.5f), Mat("UmbrellaC", new Color(1f, 0.8f, 0.15f), 0f, 0.5f) };
+        for (int i = 5; i < pts.Count; i += 13)
+        {
+            var tanU = (pts[(i + 1) % pts.Count] - pts[i]).normalized;
+            var sideU = new Vector3(tanU.z, 0f, -tanU.x).normalized;
+            float s = (i % 26 == 5) ? -1f : 1f;
+            var pos = pts[i] + sideU * (s * 8.8f);
+            var pole = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            pole.name = "UmbrellaPole";
+            pole.transform.position = pos + Vector3.up * 1.1f;
+            pole.transform.localScale = new Vector3(0.07f, 1.1f, 0.07f);
+            pole.GetComponent<MeshRenderer>().sharedMaterial = lineMat;
+            pole.GetComponent<Collider>().enabled = false;
+            var top = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            top.name = "Umbrella";
+            top.transform.position = pos + Vector3.up * 2.25f;
+            top.transform.localScale = new Vector3(1.9f, 0.75f, 1.9f);
+            top.GetComponent<MeshRenderer>().sharedMaterial = umbrellaMats[(i / 13) % 3];
+            top.GetComponent<Collider>().enabled = false;
         }
 
         var trackObj = new GameObject("TrackPath");
@@ -581,8 +676,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.6.1";
-        PlayerSettings.Android.bundleVersionCode = 10;
+        PlayerSettings.bundleVersion = "0.7.0";
+        PlayerSettings.Android.bundleVersionCode = 11;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });

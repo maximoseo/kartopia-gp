@@ -1,8 +1,8 @@
 {
-  "version": "0.6.1",
-  "versionCode": 10,
+  "version": "0.7.0",
+  "versionCode": 11,
   "apk": "KartopiaGP.apk",
-  "sha256": "5886f6c56c3960fa240a8e1409ef716131643643916557bfa1f19ad0105efb0a",
-  "size": 48084965,
-  "notes": "Living backgrounds: animated grandstand crowds, bird flock, flowing water, dense bushes and flowers, distance fog."
+  "sha256": "8352bbbf0737760763e676edc18c31325e4546814c6d58af69af63f65cc46eda",
+  "size": 48215833,
+  "notes": "Graphics leap: Blender kart v4 (steering wheel, mirrors, front wing, diffuser, roundels), continuous red/white guardrails, edge lines, center dashes, beach umbrellas."
 }
