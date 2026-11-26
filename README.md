@@ -21,6 +21,10 @@ An original, colorful arcade kart racer built with Unity 6 (URP), inspired by cl
 - Menu key art generated with Higgsfield (`Assets/Art/keyart.png`)
 - Unity URP lighting, soft shadows, palms, candy hills, and clouds
 
+## Updates
+
+The game checks `releases/latest/download/version.json` on the menu and offers in-game updates.
+
 ## Screenshots
 
 ![Blender kart](docs/screenshots/blender-kart.png)

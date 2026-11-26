@@ -108,6 +108,18 @@ public static class BuildGame
         sun.color = new Color(1f, 0.92f, 0.78f);
         sun.shadows = LightShadows.Soft;
 
+        var skyTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/sky.png");
+        if (skyTex != null)
+        {
+            var skyMat = new Material(Shader.Find("Skybox/Panoramic"));
+            skyMat.SetTexture("_MainTex", skyTex);
+            skyMat.SetFloat("_Exposure", 1.15f);
+            RenderSettings.skybox = skyMat;
+        }
+        RenderSettings.ambientSkyColor = new Color(0.45f, 0.62f, 0.9f);
+        RenderSettings.ambientGroundColor = new Color(0.25f, 0.4f, 0.2f);
+        RenderSettings.ambientIntensity = 1.1f;
+
         var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
         ground.name = "Ground";
         ground.transform.localScale = new Vector3(34f, 1f, 34f);
@@ -129,8 +141,67 @@ public static class BuildGame
         startLine.GetComponent<MeshRenderer>().sharedMaterial = Mat("StartLine", new Color(0.95f, 0.95f, 0.95f), 0f, 0.4f);
         startLine.GetComponent<BoxCollider>().enabled = false;
 
+        var curbRed = Mat("CurbRed", new Color(0.9f, 0.08f, 0.08f), 0.1f, 0.5f);
+        var curbWhite = Mat("CurbWhite", new Color(0.95f, 0.95f, 0.92f), 0.1f, 0.5f);
+        for (int i = 0; i < pts.Count; i++)
+        {
+            var tanC = (pts[(i + 1) % pts.Count] - pts[i]).normalized;
+            var sideC = new Vector3(tanC.z, 0f, -tanC.x).normalized;
+            foreach (var s in new[] { -1f, 1f })
+            {
+                var curb = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                curb.name = "Curb";
+                curb.transform.position = pts[i] + sideC * (s * 5.9f) + Vector3.up * 0.08f;
+                curb.transform.rotation = Quaternion.LookRotation(tanC);
+                curb.transform.localScale = new Vector3(0.7f, 0.12f, 3.4f);
+                curb.GetComponent<MeshRenderer>().sharedMaterial = (i % 2 == 0) ? curbRed : curbWhite;
+                curb.GetComponent<BoxCollider>().enabled = false;
+            }
+        }
+        // start arch with key-art banner
+        var archMat = Mat("Arch", new Color(0.08f, 0.1f, 0.35f), 0.3f, 0.6f);
+        foreach (var s in new[] { -1f, 1f })
+        {
+            var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            post.name = "ArchPost";
+            post.transform.position = pts[2] + new Vector3(1f, 0f, 0f) * 0f + Vector3.up * 3.4f + new Vector3(s * 6.4f, 0f, 0f);
+            post.transform.localScale = new Vector3(0.4f, 3.4f, 0.4f);
+            post.GetComponent<MeshRenderer>().sharedMaterial = archMat;
+            var pc2 = post.GetComponent<Collider>(); if (pc2 != null) pc2.enabled = false;
+        }
+        var banner = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        banner.name = "ArchBanner";
+        banner.transform.position = pts[2] + Vector3.up * 6.9f;
+        banner.transform.rotation = Quaternion.LookRotation((pts[4] - pts[0]).normalized);
+        banner.transform.localScale = new Vector3(13.5f, 2.2f, 0.3f);
+        var keyartTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/keyart.png");
+        banner.GetComponent<MeshRenderer>().sharedMaterial = Mat("ArchBanner", Color.white, 0f, 0.5f, keyartTex);
+        banner.GetComponent<BoxCollider>().enabled = false;
+        // flags
+        var flagColors = new[] { new Color(1f, 0.3f, 0.2f), new Color(1f, 0.8f, 0.1f), new Color(0.2f, 0.7f, 1f), new Color(0.3f, 0.9f, 0.4f) };
+        for (int i = 4; i < pts.Count; i += 8)
+        {
+            var tanF = (pts[(i + 1) % pts.Count] - pts[i]).normalized;
+            var sideF = new Vector3(tanF.z, 0f, -tanF.x).normalized;
+            float s = (i % 16 == 4) ? -1f : 1f;
+            var pole = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            pole.name = "FlagPole";
+            pole.transform.position = pts[i] + sideF * (s * 7.6f) + Vector3.up * 2.6f;
+            pole.transform.localScale = new Vector3(0.09f, 2.6f, 0.09f);
+            pole.GetComponent<MeshRenderer>().sharedMaterial = archMat;
+            var pc3 = pole.GetComponent<Collider>(); if (pc3 != null) pc3.enabled = false;
+            var flag = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            flag.name = "Flag";
+            flag.transform.position = pole.transform.position + Vector3.up * 2.2f + new Vector3(0.55f, 0f, 0f);
+            flag.transform.localScale = new Vector3(1.1f, 0.65f, 0.05f);
+            flag.GetComponent<MeshRenderer>().sharedMaterial = Mat("Flag" + (i % 4), flagColors[(i / 8) % 4], 0f, 0.5f);
+            flag.GetComponent<BoxCollider>().enabled = false;
+        }
+
         // boost pads + item boxes + bananas along the loop
         var padMat = Mat("BoostPad", new Color(1f, 0.62f, 0.05f), 0.2f, 0.7f);
+        padMat.SetColor("_EmissionColor", new Color(1f, 0.45f, 0.02f) * 1.6f);
+        padMat.EnableKeyword("_EMISSION");
         var boxMat = Mat("ItemBox", new Color(1f, 0.8f, 0.1f), 0.3f, 0.8f);
         var bananaMat = Mat("Banana", new Color(1f, 0.9f, 0.15f), 0f, 0.5f);
         for (int i = 6; i < pts.Count; i += 12)
@@ -242,6 +313,7 @@ public static class BuildGame
         race.aiCars = aiCars;
         race.track = track;
         race.totalLaps = 3;
+        race.musicClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/race_music.wav");
         var hud = raceObj.AddComponent<Hud>();
         hud.race = race;
         hud.kart = player.GetComponent<KartController>();
@@ -262,6 +334,7 @@ public static class BuildGame
         menuCam.backgroundColor = new Color(0.35f, 0.65f, 0.95f);
         var menu = new GameObject("MainMenu").AddComponent<MenuUI>();
         menu.backdrop = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/keyart.png");
+        new GameObject("Updater").AddComponent<Updater>();
         EditorSceneManager.SaveScene(menuScene, "Assets/Scenes/MainMenu.unity");
 
         EditorBuildSettings.scenes = new[]
@@ -270,6 +343,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
         };
 
+        PlayerSettings.bundleVersion = "0.2.0";
+        PlayerSettings.Android.bundleVersionCode = 2;
         PlayerSettings.companyName = "MaximoSEO";
         PlayerSettings.productName = "Kartopia GP";
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "com.maximoseo.kartopia");

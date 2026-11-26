@@ -11,6 +11,7 @@ public class RaceManager : MonoBehaviour
     public TrackPath track;
     public int totalLaps = 3;
     public float countdownSeconds = 3f;
+    public AudioClip musicClip;
 
     public RacePhase Phase { get; private set; } = RacePhase.Countdown;
     public float RaceTime { get; private set; }
@@ -24,9 +25,13 @@ public class RaceManager : MonoBehaviour
     float _playerProgress;
     readonly Dictionary<Transform, float> _finishTimes = new();
 
+    AudioSource _music;
+
     void Start()
     {
         if (player != null && player.TryGetComponent<KartController>(out var kc)) kc.enabled = false;
+        _music = gameObject.AddComponent<AudioSource>();
+        _music.clip = musicClip; _music.loop = true; _music.volume = 0.45f;
     }
 
     void Update()
@@ -40,6 +45,7 @@ public class RaceManager : MonoBehaviour
             if (_countdownElapsed >= countdownSeconds)
             {
                 Phase = RacePhase.Racing;
+                if (_music.clip != null) _music.Play();
                 if (player.TryGetComponent<KartController>(out var kc)) kc.enabled = true;
                 foreach (var ai in aiCars)
                     if (ai.TryGetComponent<AiDriver>(out var d)) d.racing = true;

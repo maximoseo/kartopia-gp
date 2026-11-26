@@ -15,6 +15,7 @@ public class KartController : MonoBehaviour
     public bool boostDisabled;
 
     Rigidbody rb;
+    Transform _visual;
     float driftCharge;
     float boostTime;
     bool wasDrifting;
@@ -37,7 +38,11 @@ public class KartController : MonoBehaviour
     }
     public float ChargeRatio => Mathf.Clamp01(driftCharge / driftChargeTime);
 
-    void Awake() => rb = GetComponent<Rigidbody>();
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+        _visual = transform.Find("KartModel");
+    }
 
     void FixedUpdate()
     {
@@ -87,6 +92,13 @@ public class KartController : MonoBehaviour
             float dir = Mathf.Sign(fwdSpeed);
             float turn = steer * turnSpeed * (drifting ? 1.45f : 1f) * dir;
             rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, turn * Time.fixedDeltaTime, 0f));
+        }
+        if (_visual != null)
+        {
+            float roll = -steer * (drifting ? 9f : 4f);
+            float yaw = steer * (drifting ? 12f : 5f);
+            _visual.localRotation = Quaternion.Slerp(_visual.localRotation,
+                Quaternion.Euler(0f, 180f + yaw, roll), 1f - Mathf.Exp(-10f * Time.fixedDeltaTime));
         }
         // grip: kill most lateral slide unless drifting
         var local = transform.InverseTransformDirection(rb.linearVelocity);

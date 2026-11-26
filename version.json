@@ -1,0 +1,8 @@
+{
+  "version": "0.2.0",
+  "versionCode": 2,
+  "apk": "KartopiaGP.apk",
+  "sha256": "86667a2b97ae6d5cee16d6b3f2775fa3b33005bf93dae5407dc476b371b998e0",
+  "size": 43164699,
+  "notes": "Graphics pass: Higgsfield cartoon sky, curbs, start arch, flags, emissive boost pads, rebuilt Blender kart; gameplay: drift tilt, Higgsfield race music; in-game updater."
+}
