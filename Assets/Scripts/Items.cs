@@ -30,7 +30,8 @@ public class ItemBox : MonoBehaviour
 
     public void Collect(KartController kart)
     {
-        kart.GiveBoost(1.0f);
+        if (Random.value < 0.4f) kart.GiveShield(4f);
+        else kart.GiveBoost(1.0f);
         SetVisible(false);
         _respawn = 6f;
     }
@@ -44,6 +45,7 @@ public class BananaPeel : MonoBehaviour
 {
     public void Hit(KartController kart)
     {
+        if (kart.ShieldActive) { gameObject.SetActive(false); return; }
         kart.SlowDown(0.45f, 0.5f);
         gameObject.SetActive(false);
     }

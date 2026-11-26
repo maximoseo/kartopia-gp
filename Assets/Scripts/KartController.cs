@@ -32,6 +32,29 @@ public class KartController : MonoBehaviour
 
     bool driftingNow() => _visual != null && driftCharge > 0.02f;
 
+    float _shieldUntil;
+    GameObject _shieldBubble;
+    public bool ShieldActive => Time.time < _shieldUntil;
+
+    public void GiveShield(float seconds = 4f)
+    {
+        _shieldUntil = Time.time + seconds;
+        if (_shieldBubble == null)
+        {
+            _shieldBubble = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            _shieldBubble.name = "ShieldBubble";
+            _shieldBubble.transform.SetParent(transform);
+            _shieldBubble.transform.localPosition = new Vector3(0f, 0.65f, 0f);
+            _shieldBubble.transform.localScale = Vector3.one * 2.6f;
+            var mr = _shieldBubble.GetComponent<MeshRenderer>();
+            mr.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            mr.material.SetColor("_BaseColor", new Color(0.4f, 0.85f, 1f, 0.28f));
+            mr.material.SetFloat("_Surface", 1f);
+            _shieldBubble.GetComponent<Collider>().enabled = false;
+        }
+        _shieldBubble.SetActive(true);
+    }
+
     public void GiveBoost(float seconds = 0.9f) => boostTime = Mathf.Max(boostTime, seconds);
 
     void OnTriggerEnter(Collider other)
@@ -92,6 +115,8 @@ public class KartController : MonoBehaviour
             steer = Mathf.Clamp((pos.x / Mathf.Max(Screen.width, 1) - 0.5f) * 2.4f, -1f, 1f);
         }
 
+        if (_shieldBubble != null && _shieldBubble.activeSelf && !ShieldActive)
+            _shieldBubble.SetActive(false);
         if (_engine != null)
         {
             float sr = Mathf.Clamp01(Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.forward)) / Mathf.Max(maxSpeed, 1f));

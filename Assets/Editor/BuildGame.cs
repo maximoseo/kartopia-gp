@@ -4,6 +4,8 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 public static class BuildGame
 {
@@ -121,6 +123,24 @@ public static class BuildGame
         sun.intensity = 2.8f;
         sun.color = new Color(1f, 0.92f, 0.78f);
         sun.shadows = LightShadows.Soft;
+
+        {
+            var profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            var bloom = profile.Add<Bloom>(true);
+            bloom.intensity.value = 0.35f; bloom.threshold.value = 0.85f;
+            var colorAdj = profile.Add<ColorAdjustments>(true);
+            colorAdj.saturation.value = 18f; colorAdj.contrast.value = 6f;
+            var vignette = profile.Add<Vignette>(true);
+            vignette.intensity.value = 0.22f;
+            var tone = profile.Add<Tonemapping>(true);
+            tone.mode.value = TonemappingMode.ACES;
+            Directory.CreateDirectory("Assets/Settings");
+            AssetDatabase.CreateAsset(profile, "Assets/Settings/KartopiaVolumeProfile.asset");
+            var volumeObj = new GameObject("GlobalVolume");
+            var volume = volumeObj.AddComponent<Volume>();
+            volume.isGlobal = true;
+            volume.sharedProfile = profile;
+        }
 
         var skyTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/sky.png");
         if (skyTex != null)
@@ -301,6 +321,7 @@ public static class BuildGame
             flag.transform.localScale = new Vector3(1.1f, 0.65f, 0.05f);
             flag.GetComponent<MeshRenderer>().sharedMaterial = Mat("Flag" + (i % 4), flagColors[(i / 8) % 4], 0f, 0.5f);
             flag.GetComponent<BoxCollider>().enabled = false;
+            flag.AddComponent<FlagWave>();
         }
 
         // boost pads + item boxes + bananas along the loop
@@ -376,6 +397,7 @@ public static class BuildGame
             cloud.transform.position = new Vector3(Mathf.Cos(a) * 95f, 26f + (i % 3) * 4f, Mathf.Sin(a) * 95f);
             cloud.transform.rotation = Quaternion.Euler(0f, i * 41f, 0f);
             cloud.transform.localScale = Vector3.one * 3.4f;
+            cloud.AddComponent<CloudDrift>();
         }
         for (int i = 0; i < 2; i++)
         {
@@ -451,8 +473,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.4.0";
-        PlayerSettings.Android.bundleVersionCode = 7;
+        PlayerSettings.bundleVersion = "0.5.0";
+        PlayerSettings.Android.bundleVersionCode = 8;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });

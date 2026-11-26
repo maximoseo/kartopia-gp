@@ -1,8 +1,8 @@
 {
-  "version": "0.4.0",
-  "versionCode": 7,
+  "version": "0.5.0",
+  "versionCode": 8,
   "apk": "KartopiaGP.apk",
-  "sha256": "9c857bc7765b4300cae10c084ff304277666758369a8ef920ad1c97cd12dc20a",
-  "size": 47218334,
-  "notes": "Backgrounds: ocean + beach ribbons, Blender tire stacks/cones/lighthouses, Higgsfield road texture; gameplay: minimap, slipstream, sand slow zones."
+  "sha256": "8d7918c9506308c25a5a286f85069c9eb8b884bed39f5a3902e90495376818a7",
+  "size": 47222910,
+  "notes": "URP post-processing (ACES, bloom, vignette), drifting clouds, waving flags, shield power-up, pause/restart, wrong-way warning."
 }

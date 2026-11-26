@@ -148,9 +148,20 @@ public class Hud : MonoBehaviour
         return obj;
     }
 
+    bool _paused;
+
+    public void TogglePause()
+    {
+        _paused = !_paused;
+        Time.timeScale = _paused ? 0f : 1f;
+        if (_centerText != null) _centerText.text = _paused ? "PAUSED" : "";
+    }
+
     void Update()
     {
         if (race == null) return;
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P)) TogglePause();
+        if (_paused) return;
         _posText.text = $"P{race.PlayerPosition()} / {race.RacerCount}  LAP {race.PlayerLapDisplay}/{race.totalLaps}";
         if (_standingsText != null) _standingsText.text = race.StandingsText();
         _timeText.text = RaceManager.FormatTime(race.RaceTime);
@@ -163,6 +174,11 @@ public class Hud : MonoBehaviour
             _boostFill.color = kart.BoostActive ? new Color(1f, 0.55f, 0.15f) : new Color(0.3f, 0.85f, 1f, 0.95f);
             _boostFill.rectTransform.sizeDelta = new Vector2(220f * ratio, 0f);
         }
+        if (race.PlayerWrongWay && race.Phase == RacePhase.Racing)
+            _centerText.text = "WRONG WAY!";
+        else if (race.Phase == RacePhase.Finished && Input.GetKeyDown(KeyCode.R))
+            race.RestartRace();
+        else
         _centerText.text = race.Phase == RacePhase.Countdown
             ? (race.CountdownLeft > 0.5f ? Mathf.CeilToInt(race.CountdownLeft).ToString() : "GO!")
             : "";

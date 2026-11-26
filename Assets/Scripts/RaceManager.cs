@@ -19,6 +19,9 @@ public class RaceManager : MonoBehaviour
     public bool PlayerFinished { get; private set; }
     public float PlayerFinishTime { get; private set; }
     public float PlayerProgressMeters => _playerProgress;
+    public bool PlayerWrongWay { get; private set; }
+
+    public void RestartRace() => UnityEngine.SceneManagement.SceneManager.LoadScene("KartTrack");
 
     float _countdownElapsed;
     int _playerIndexHint = -1, _playerLap;
@@ -37,7 +40,15 @@ public class RaceManager : MonoBehaviour
     void Update()
     {
         if (track != null && player != null)
+        {
             _playerProgress = track.ProgressOf(player.position, ref _playerIndexHint, ref _playerLap);
+            if (Phase == RacePhase.Racing && _playerIndexHint >= 0)
+            {
+                var tan = (track.PointAt(_playerIndexHint + 1) - track.PointAt(_playerIndexHint - 1)).normalized;
+                PlayerWrongWay = Vector3.Dot(player.forward, tan) < -0.35f;
+            }
+            else PlayerWrongWay = false;
+        }
 
         if (Phase == RacePhase.Countdown)
         {
