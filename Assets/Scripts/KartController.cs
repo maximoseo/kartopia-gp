@@ -24,6 +24,11 @@ public class KartController : MonoBehaviour
     bool wasDrifting;
 
     public bool BoostActive => boostTime > 0f;
+    public bool Slipstreaming { get; private set; }
+    float _slowUntil;
+    AiDriver[] _opponents;
+
+    public void ApplySlowZone() => _slowUntil = Time.time + 0.25f;
 
     bool driftingNow() => _visual != null && driftCharge > 0.02f;
 
@@ -112,7 +117,20 @@ public class KartController : MonoBehaviour
         wasDrifting = drifting;
         if (boostTime > 0f) boostTime -= Time.fixedDeltaTime;
 
-        float accel = acceleration + (BoostActive ? boostAccel : 0f);
+        // slipstream: tuck behind an opponent for extra pace
+        Slipstreaming = false;
+        if (_opponents == null) _opponents = FindObjectsByType<AiDriver>(FindObjectsSortMode.None);
+        foreach (var ai in _opponents)
+        {
+            if (ai == null) continue;
+            var rel = ai.transform.position - transform.position;
+            float ahead = Vector3.Dot(rel, transform.forward);
+            float lateral = Vector3.Dot(rel, transform.right);
+            if (ahead > 2.5f && ahead < 11f && Mathf.Abs(lateral) < 2.1f && fwdSpeed > 9f)
+            { Slipstreaming = true; break; }
+        }
+        float accel = acceleration + (BoostActive ? boostAccel : 0f) + (Slipstreaming ? 7f : 0f);
+        if (Time.time < _slowUntil) accel *= 0.45f;
         if (throttle != 0f)
             rb.AddForce(transform.forward * (throttle * accel), ForceMode.Acceleration);
 

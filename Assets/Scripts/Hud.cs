@@ -11,6 +11,9 @@ public class Hud : MonoBehaviour
     Text _posText, _timeText, _speedText, _centerText, _resultsText, _standingsText;
     Image _boostFill;
     GameObject _resultsPanel;
+    RectTransform _mapRect;
+    readonly System.Collections.Generic.List<RectTransform> _mapDots = new();
+    Vector2 _mapMin, _mapSize;
 
     void Start()
     {
@@ -30,6 +33,8 @@ public class Hud : MonoBehaviour
         _resultsText = MakeText(_resultsPanel.transform, "RESULTS", new Vector2(0.5f, 0.5f), Vector2.zero, 34);
         _resultsPanel.SetActive(false);
 
+        BuildMinimap(canvasObj.transform);
+
         // boost bar bottom-right
         var bg = new GameObject("BoostBg");
         bg.transform.SetParent(canvasObj.transform);
@@ -45,6 +50,74 @@ public class Hud : MonoBehaviour
         fillRt.anchorMin = new Vector2(0f, 0f); fillRt.anchorMax = new Vector2(0f, 1f);
         fillRt.offsetMin = Vector2.zero; fillRt.offsetMax = new Vector2(0f, 0f);
         fillRt.sizeDelta = new Vector2(0f, 0f);
+    }
+
+    void BuildMinimap(Transform parent)
+    {
+        if (race == null || race.track == null || race.track.points == null) return;
+        var pts = race.track.points;
+        _mapMin = new Vector2(float.MaxValue, float.MaxValue);
+        var max = new Vector2(float.MinValue, float.MinValue);
+        foreach (var pt in pts)
+        {
+            _mapMin = Vector2.Min(_mapMin, new Vector2(pt.x, pt.z));
+            max = Vector2.Max(max, new Vector2(pt.x, pt.z));
+        }
+        _mapSize = max - _mapMin;
+        var tex = new Texture2D(220, 220, TextureFormat.RGBA32, false);
+        var clear = new Color(0.02f, 0.03f, 0.08f, 0.75f);
+        for (int y = 0; y < 220; y++) for (int x = 0; x < 220; x++) tex.SetPixel(x, y, clear);
+        foreach (var pt in pts)
+        {
+            var uv = WorldToMap(pt);
+            for (int dy = -2; dy <= 2; dy++) for (int dx = -2; dx <= 2; dx++)
+            {
+                int px = Mathf.Clamp(Mathf.RoundToInt(uv.x * 219f) + dx, 0, 219);
+                int py = Mathf.Clamp(Mathf.RoundToInt(uv.y * 219f) + dy, 0, 219);
+                tex.SetPixel(px, py, Color.white);
+            }
+        }
+        tex.Apply();
+        var mapObj = new GameObject("Minimap");
+        mapObj.transform.SetParent(parent);
+        var raw = mapObj.AddComponent<RawImage>(); raw.texture = tex;
+        _mapRect = mapObj.GetComponent<RectTransform>();
+        _mapRect.anchorMin = _mapRect.anchorMax = new Vector2(1f, 1f);
+        _mapRect.anchoredPosition = new Vector2(-125f, -125f);
+        _mapRect.sizeDelta = new Vector2(210f, 210f);
+        var dotColors = new[] { Color.white, new Color(1f, 0.25f, 0.2f), new Color(0.3f, 0.9f, 0.4f), new Color(1f, 0.75f, 0.15f) };
+        var racers = new System.Collections.Generic.List<Transform> { race.player };
+        racers.AddRange(race.aiCars);
+        for (int i = 0; i < racers.Count && i < dotColors.Length; i++)
+        {
+            var dot = new GameObject("MapDot");
+            dot.transform.SetParent(mapObj.transform);
+            var img = dot.AddComponent<Image>(); img.color = dotColors[i];
+            var rt = dot.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(0f, 0f);
+            rt.sizeDelta = new Vector2(i == 0 ? 13f : 10f, i == 0 ? 13f : 10f);
+            _mapDots.Add(rt);
+        }
+    }
+
+    Vector2 WorldToMap(Vector3 world)
+    {
+        return new Vector2(
+            (world.x - _mapMin.x) / Mathf.Max(_mapSize.x, 1f),
+            (world.z - _mapMin.y) / Mathf.Max(_mapSize.y, 1f));
+    }
+
+    void UpdateMinimap()
+    {
+        if (_mapRect == null || race == null) return;
+        var racers = new System.Collections.Generic.List<Transform> { race.player };
+        racers.AddRange(race.aiCars);
+        for (int i = 0; i < _mapDots.Count && i < racers.Count; i++)
+        {
+            if (racers[i] == null) continue;
+            var uv = WorldToMap(racers[i].position);
+            _mapDots[i].anchoredPosition = new Vector2(uv.x * 210f, uv.y * 210f);
+        }
     }
 
     Text MakeText(Transform parent, string name, Vector2 anchor, Vector2 pos, int size)
@@ -83,6 +156,7 @@ public class Hud : MonoBehaviour
         _timeText.text = RaceManager.FormatTime(race.RaceTime);
         if (kartBody != null)
             _speedText.text = $"{Mathf.RoundToInt(kartBody.linearVelocity.magnitude * 3.6f)}";
+        if (kart != null && kart.Slipstreaming) _speedText.text += " SLIP";
         if (kart != null && _boostFill != null)
         {
             float ratio = kart.BoostActive ? 1f : kart.ChargeRatio;
@@ -92,6 +166,7 @@ public class Hud : MonoBehaviour
         _centerText.text = race.Phase == RacePhase.Countdown
             ? (race.CountdownLeft > 0.5f ? Mathf.CeilToInt(race.CountdownLeft).ToString() : "GO!")
             : "";
+        UpdateMinimap();
         if (race.Phase == RacePhase.Finished && !_resultsPanel.activeSelf)
         {
             _resultsText.text = "FINISH\n" + race.ResultsText();

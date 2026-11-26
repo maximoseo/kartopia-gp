@@ -48,3 +48,12 @@ public class BananaPeel : MonoBehaviour
         gameObject.SetActive(false);
     }
 }
+
+public class SlowZone : MonoBehaviour
+{
+    void OnTriggerStay(Collider other)
+    {
+        if (other.TryGetComponent<KartController>(out var kart))
+            kart.ApplySlowZone();
+    }
+}

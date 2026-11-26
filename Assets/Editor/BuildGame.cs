@@ -140,7 +140,89 @@ public static class BuildGame
         ground.transform.position = new Vector3(0f, -1.2f, 0f);
         ground.GetComponent<MeshRenderer>().sharedMaterial = Mat("Grass", new Color(0.2f, 0.65f, 0.3f), 0f, 0.2f);
 
-        BuildRoad(pts, 11f, Mat("Asphalt", new Color(0.12f, 0.12f, 0.16f), 0.05f, 0.35f));
+        var roadTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/road.png");
+        var asphalt = Mat("Asphalt", new Color(0.55f, 0.55f, 0.62f), 0.05f, 0.35f, roadTex);
+        if (roadTex != null) asphalt.SetTextureScale("_BaseMap", new Vector2(1f, 1f));
+        BuildRoad(pts, 11f, asphalt);
+        // ocean + beach background
+        var ocean = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        ocean.name = "Ocean";
+        ocean.transform.position = new Vector3(0f, -1.7f, 0f);
+        ocean.transform.localScale = new Vector3(190f, 0.5f, 190f);
+        ocean.GetComponent<MeshRenderer>().sharedMaterial = Mat("Ocean", new Color(0.05f, 0.35f, 0.75f), 0.1f, 0.85f);
+        ocean.GetComponent<Collider>().enabled = false;
+        var sandMat = Mat("Beach", new Color(0.92f, 0.8f, 0.52f), 0f, 0.25f);
+        {
+            int n2 = pts.Count;
+            var verts = new Vector3[n2 * 2];
+            var tris = new System.Collections.Generic.List<int>();
+            for (int i = 0; i < n2; i++)
+            {
+                var tanB = (pts[(i + 1) % n2] - pts[(i - 1 + n2) % n2]).normalized;
+                var sideB = new Vector3(tanB.z, 0f, -tanB.x).normalized;
+                verts[i * 2] = pts[i] - sideB * 10.5f + Vector3.up * 0.01f;
+                verts[i * 2 + 1] = pts[i] + sideB * 10.5f + Vector3.up * 0.01f;
+                int a = i * 2, b = ((i + 1) % n2) * 2;
+                tris.Add(a); tris.Add(b); tris.Add(a + 1);
+                tris.Add(b); tris.Add(b + 1); tris.Add(a + 1);
+            }
+            var beachMesh = new Mesh { name = "BeachRibbon" };
+            beachMesh.vertices = verts; beachMesh.triangles = tris.ToArray();
+            beachMesh.RecalculateNormals();
+            var beach = new GameObject("Beach");
+            beach.AddComponent<MeshFilter>().sharedMesh = beachMesh;
+            beach.AddComponent<MeshRenderer>().sharedMaterial = sandMat;
+        }
+        var tirePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/tire_stack.glb");
+        var conePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/cone.glb");
+        var lightPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/lighthouse.glb");
+        for (int i = 3; i < pts.Count; i += 9)
+        {
+            var tanT = (pts[(i + 1) % pts.Count] - pts[i]).normalized;
+            var sideT = new Vector3(tanT.z, 0f, -tanT.x).normalized;
+            float s = (i % 18 == 3) ? -1f : 1f;
+            if (tirePrefab != null)
+            {
+                var tires = Object.Instantiate(tirePrefab);
+                tires.name = "TireStack";
+                tires.transform.position = pts[i] + sideT * (s * 8.2f);
+                tires.transform.localScale = Vector3.one * 1.3f;
+            }
+            if (conePrefab != null)
+            {
+                var cone = Object.Instantiate(conePrefab);
+                cone.name = "Cone";
+                cone.transform.position = pts[i] + sideT * (-s * 4.6f) + Vector3.up * 0.05f;
+                cone.transform.localScale = Vector3.one * 1.2f;
+            }
+        }
+        if (lightPrefab != null)
+        {
+            var light1 = Object.Instantiate(lightPrefab);
+            light1.name = "Lighthouse";
+            light1.transform.position = new Vector3(-118f, -1f, 60f);
+            light1.transform.localScale = Vector3.one * 1.6f;
+            var light2 = Object.Instantiate(lightPrefab);
+            light2.name = "Lighthouse2";
+            light2.transform.position = new Vector3(105f, -1f, -95f);
+            light2.transform.rotation = Quaternion.Euler(0f, 140f, 0f);
+            light2.transform.localScale = Vector3.one * 1.3f;
+        }
+        // sand slow zones (risk/reward patches on two corners)
+        var sandZoneMat = Mat("SandZone", new Color(0.85f, 0.68f, 0.38f, 0.9f), 0f, 0.2f);
+        foreach (var zi in new[] { 24, 63 })
+        {
+            var zone = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            zone.name = "SandZone";
+            var tanZ = (pts[(zi + 1) % pts.Count] - pts[zi]).normalized;
+            zone.transform.position = pts[zi] + Vector3.up * 0.12f;
+            zone.transform.rotation = Quaternion.LookRotation(tanZ);
+            zone.transform.localScale = new Vector3(8.5f, 0.1f, 7f);
+            zone.GetComponent<MeshRenderer>().sharedMaterial = sandZoneMat;
+            zone.GetComponent<BoxCollider>().isTrigger = true;
+            zone.AddComponent<SlowZone>();
+        }
+
         var trackObj = new GameObject("TrackPath");
         var track = trackObj.AddComponent<TrackPath>();
         track.Build(pts.ToArray(), 11f);
@@ -369,8 +451,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.3.2";
-        PlayerSettings.Android.bundleVersionCode = 6;
+        PlayerSettings.bundleVersion = "0.4.0";
+        PlayerSettings.Android.bundleVersionCode = 7;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });

@@ -1,8 +1,8 @@
 {
-  "version": "0.3.2",
-  "versionCode": 6,
+  "version": "0.4.0",
+  "versionCode": 7,
   "apk": "KartopiaGP.apk",
-  "sha256": "4d98befc05e7609d1c1453d2b9249dcba279d04261243b916fa79f941a4875d9",
-  "size": 47092254,
-  "notes": "Blender environment kit: curved palms, candy hills, cloud clusters, grandstands replace primitive scenery."
+  "sha256": "9c857bc7765b4300cae10c084ff304277666758369a8ef920ad1c97cd12dc20a",
+  "size": 47218334,
+  "notes": "Backgrounds: ocean + beach ribbons, Blender tire stacks/cones/lighthouses, Higgsfield road texture; gameplay: minimap, slipstream, sand slow zones."
 }
