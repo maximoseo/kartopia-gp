@@ -559,6 +559,65 @@ public static class BuildGame
             stand.transform.localScale = Vector3.one * 1.5f;
         }
 
+        // checkered start line (procedural checker texture)
+        {
+            var checker = new Texture2D(8, 2);
+            for (int y = 0; y < 2; y++) for (int x = 0; x < 8; x++)
+                checker.SetPixel(x, y, (x + y) % 2 == 0 ? Color.white : Color.black);
+            checker.Apply();
+            var checkMat = Mat("Checker", Color.white, 0f, 0.4f, checker);
+            var checkLine = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            checkLine.name = "CheckerLine";
+            var tanCk = (pts[4] - pts[0]).normalized;
+            checkLine.transform.position = pts[2] + Vector3.up * 0.1f;
+            checkLine.transform.rotation = Quaternion.LookRotation(tanCk);
+            checkLine.transform.localScale = new Vector3(11f, 0.06f, 2.2f);
+            checkLine.GetComponent<MeshRenderer>().sharedMaterial = checkMat;
+            checkLine.GetComponent<BoxCollider>().enabled = false;
+        }
+        // logo banners on grandstand roofs
+        var logoTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
+        if (logoTex != null)
+        {
+            var bannerMat2 = Mat("StandBanner", Color.white, 0f, 0.5f, logoTex);
+            foreach (var standObj in GameObject.FindGameObjectsWithTag("Untagged"))
+            {
+                if (standObj.name != "Grandstand") continue;
+                var standBanner = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                standBanner.name = "StandBanner";
+                standBanner.transform.SetParent(standObj.transform);
+                standBanner.transform.localPosition = new Vector3(0f, 5.4f, -2.2f);
+                standBanner.transform.localScale = new Vector3(5.5f, 2.2f, 0.15f);
+                standBanner.GetComponent<MeshRenderer>().sharedMaterial = bannerMat2;
+                standBanner.GetComponent<BoxCollider>().enabled = false;
+            }
+        }
+        // Blender round trees + mountain ridges around the island
+        var treePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/round_tree.glb");
+        for (int i = 2; i < pts.Count; i += 4)
+        {
+            if (treePrefab == null) break;
+            var tanT2 = (pts[(i + 1) % pts.Count] - pts[i]).normalized;
+            var sideT2 = new Vector3(tanT2.z, 0f, -tanT2.x).normalized;
+            float sT = (i % 8 == 2) ? -1f : 1f;
+            var tree = Object.Instantiate(treePrefab);
+            tree.name = "RoundTree";
+            tree.transform.position = pts[i] + sideT2 * (sT * (11.5f + (i % 3)));
+            tree.transform.rotation = Quaternion.Euler(0f, i * 47f, 0f);
+            tree.transform.localScale = Vector3.one * (1.2f + (i % 4) * 0.25f);
+        }
+        var ridgePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/mountain_ridge.glb");
+        for (int i = 0; i < 4; i++)
+        {
+            if (ridgePrefab == null) break;
+            float a = i / 4f * Mathf.PI * 2f + 0.6f;
+            var ridge = Object.Instantiate(ridgePrefab);
+            ridge.name = "MountainRidge";
+            ridge.transform.position = new Vector3(Mathf.Cos(a) * 175f, -1f, Mathf.Sin(a) * 175f);
+            ridge.transform.rotation = Quaternion.Euler(0f, -a * Mathf.Rad2Deg + 90f, 0f);
+            ridge.transform.localScale = Vector3.one * 2.6f;
+        }
+
         // living crowds in the grandstands
         var fanColors = new[] { new Color(1f, 0.35f, 0.3f), new Color(1f, 0.85f, 0.2f), new Color(0.3f, 0.6f, 1f), new Color(0.4f, 0.95f, 0.5f), new Color(1f, 1f, 1f) };
         foreach (var standObj in GameObject.FindGameObjectsWithTag("Untagged"))
@@ -705,8 +764,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/CanyonTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.8.1";
-        PlayerSettings.Android.bundleVersionCode = 13;
+        PlayerSettings.bundleVersion = "0.8.2";
+        PlayerSettings.Android.bundleVersionCode = 14;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });

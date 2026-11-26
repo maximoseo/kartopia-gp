@@ -1,8 +1,8 @@
 {
-  "version": "0.8.1",
-  "versionCode": 13,
+  "version": "0.8.2",
+  "versionCode": 14,
   "apk": "KartopiaGP.apk",
-  "sha256": "a7a430ec91861bb96c4d9123715dc5e054c9d702da1bd16543be86dcded317e0",
-  "size": 49317703,
-  "notes": "Blender MCP-built props: segmented palm trees with coconuts and detailed grandstands with colored seat rows."
+  "sha256": "33d1676190eadcbcaf9c6e169061b5b227c11bb4db706acf7ba3820427f12b0e",
+  "size": 49515069,
+  "notes": "Blender round trees and snow-capped mountain ridges, checkered start line, logo banners on grandstands."
 }
