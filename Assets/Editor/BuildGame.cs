@@ -169,9 +169,13 @@ public static class BuildGame
         ocean.name = "Ocean";
         ocean.transform.position = new Vector3(0f, -1.7f, 0f);
         ocean.transform.localScale = new Vector3(190f, 0.5f, 190f);
-        ocean.GetComponent<MeshRenderer>().sharedMaterial = Mat("Ocean", new Color(0.05f, 0.35f, 0.75f), 0.1f, 0.85f);
+        var waterTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/water.png");
+        var oceanMat = Mat("Ocean", Color.white, 0.1f, 0.7f, waterTex);
+        if (waterTex != null) oceanMat.SetTextureScale("_BaseMap", new Vector2(22f, 22f));
+        ocean.GetComponent<MeshRenderer>().sharedMaterial = oceanMat;
         ocean.GetComponent<Collider>().enabled = false;
-        var sandMat = Mat("Beach", new Color(0.92f, 0.8f, 0.52f), 0f, 0.25f);
+        var sandTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/sand.png");
+        var sandMat = Mat("Beach", Color.white, 0f, 0.3f, sandTex);
         {
             int n2 = pts.Count;
             var verts = new Vector3[n2 * 2];
@@ -187,7 +191,9 @@ public static class BuildGame
                 tris.Add(b); tris.Add(b + 1); tris.Add(a + 1);
             }
             var beachMesh = new Mesh { name = "BeachRibbon" };
-            beachMesh.vertices = verts; beachMesh.triangles = tris.ToArray();
+            var beachUvs = new Vector2[n2 * 2];
+            for (int i2 = 0; i2 < n2; i2++) { beachUvs[i2 * 2] = new Vector2(0f, i2 * 0.35f); beachUvs[i2 * 2 + 1] = new Vector2(1f, i2 * 0.35f); }
+            beachMesh.vertices = verts; beachMesh.uv = beachUvs; beachMesh.triangles = tris.ToArray();
             beachMesh.RecalculateNormals();
             var beach = new GameObject("Beach");
             beach.AddComponent<MeshFilter>().sharedMesh = beachMesh;
@@ -228,6 +234,31 @@ public static class BuildGame
             light2.transform.rotation = Quaternion.Euler(0f, 140f, 0f);
             light2.transform.localScale = Vector3.one * 1.3f;
         }
+        var hutPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/beach_hut.glb");
+        var rockPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/rocks.glb");
+        for (int i = 8; i < pts.Count; i += 24)
+        {
+            var tanH = (pts[(i + 1) % pts.Count] - pts[i]).normalized;
+            var sideH = new Vector3(tanH.z, 0f, -tanH.x).normalized;
+            float sH = (i % 48 == 8) ? -1f : 1f;
+            if (hutPrefab != null)
+            {
+                var hut = Object.Instantiate(hutPrefab);
+                hut.name = "BeachHut";
+                hut.transform.position = pts[i] + sideH * (sH * 15f);
+                hut.transform.rotation = Quaternion.LookRotation(-sideH * sH);
+                hut.transform.localScale = Vector3.one * 1.5f;
+            }
+            if (rockPrefab != null)
+            {
+                var rocks = Object.Instantiate(rockPrefab);
+                rocks.name = "Rocks";
+                rocks.transform.position = pts[(i + 5) % pts.Count] + sideH * (-sH * 13.5f);
+                rocks.transform.rotation = Quaternion.Euler(0f, i * 29f, 0f);
+                rocks.transform.localScale = Vector3.one * 1.6f;
+            }
+        }
+
         // sand slow zones (risk/reward patches on two corners)
         var sandZoneMat = Mat("SandZone", new Color(0.85f, 0.68f, 0.38f, 0.9f), 0f, 0.2f);
         foreach (var zi in new[] { 24, 63 })
@@ -473,8 +504,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.5.0";
-        PlayerSettings.Android.bundleVersionCode = 8;
+        PlayerSettings.bundleVersion = "0.6.0";
+        PlayerSettings.Android.bundleVersionCode = 9;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });
