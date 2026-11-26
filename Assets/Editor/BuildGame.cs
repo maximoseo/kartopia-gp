@@ -368,8 +368,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.3.0";
-        PlayerSettings.Android.bundleVersionCode = 4;
+        PlayerSettings.bundleVersion = "0.3.1";
+        PlayerSettings.Android.bundleVersionCode = 5;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });

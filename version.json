@@ -1,8 +1,8 @@
 {
-  "version": "0.3.0",
-  "versionCode": 4,
+  "version": "0.3.1",
+  "versionCode": 5,
   "apk": "KartopiaGP.apk",
-  "sha256": "875ace0070c5a653b32ee4af3a8b419830bdb1ea96728aa5ae342d91a20e71ff",
-  "size": 44784777,
-  "notes": "Blender start gantry with start lights, per-racer paint colors, drift smoke particles, live standings tower, Higgsfield engine audio."
+  "sha256": "cc99057a4519f1d22a86e7a50902cfbed1764f009064304c98e8806e554bb84f",
+  "size": 46606468,
+  "notes": "Blender kart v3: smooth teardrop hull, side pods, headlights, orange helmet."
 }
