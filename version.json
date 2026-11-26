@@ -1,8 +1,8 @@
 {
-  "version": "0.8.0",
-  "versionCode": 12,
+  "version": "0.8.1",
+  "versionCode": 13,
   "apk": "KartopiaGP.apk",
-  "sha256": "861e2ac8b9188025b03012383c72b7c3413c28316a526063279e113dcda87581",
-  "size": 49412447,
-  "notes": "Second track: Candy Canyon at sunset with its own circuit shape, narrower road and menu track selection."
+  "sha256": "a7a430ec91861bb96c4d9123715dc5e054c9d702da1bd16543be86dcded317e0",
+  "size": 49317703,
+  "notes": "Blender MCP-built props: segmented palm trees with coconuts and detailed grandstands with colored seat rows."
 }

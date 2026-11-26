@@ -508,10 +508,10 @@ public static class BuildGame
             peel.AddComponent<BananaPeel>();
         }
 
-        var palmPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/palm_tree.glb");
+        var palmPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/palm_tree_v2.glb");
         var hillPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/candy_hill.glb");
         var cloudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/cloud_cluster.glb");
-        var standPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/grandstand.glb");
+        var standPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/grandstand_v2.glb");
         // Blender environment kit: palms, candy hills, clouds, grandstands
         for (int i = 0; i < pts.Count; i += 6)
         {
@@ -705,8 +705,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/CanyonTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.8.0";
-        PlayerSettings.Android.bundleVersionCode = 12;
+        PlayerSettings.bundleVersion = "0.8.1";
+        PlayerSettings.Android.bundleVersionCode = 13;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });
