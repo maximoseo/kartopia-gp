@@ -6,6 +6,17 @@ public class MenuUI : MonoBehaviour
 {
     public Texture2D backdrop;
     public Texture2D logo;
+    Transform _showroomCar;
+
+    void Update()
+    {
+        if (_showroomCar == null)
+        {
+            var found = GameObject.Find("ShowroomCar");
+            if (found != null) _showroomCar = found.transform;
+        }
+        if (_showroomCar != null) _showroomCar.Rotate(0f, 16f * Time.deltaTime, 0f);
+    }
 
     void Start()
     {
@@ -22,6 +33,15 @@ public class MenuUI : MonoBehaviour
             es.AddComponent<UnityEngine.EventSystems.EventSystem>();
             es.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
         }
+        // dim panel behind controls for readability
+        var shade = new GameObject("Shade");
+        shade.transform.SetParent(canvasObj.transform);
+        var shadeImg = shade.AddComponent<Image>();
+        shadeImg.color = new Color(0.01f, 0.02f, 0.07f, 0.42f);
+        var shadeRt = shade.GetComponent<RectTransform>();
+        shadeRt.anchorMin = new Vector2(0f, 0f); shadeRt.anchorMax = new Vector2(1f, 0.52f);
+        shadeRt.offsetMin = shadeRt.offsetMax = Vector2.zero;
+
         if (backdrop != null)
         {
             var bg = new GameObject("Backdrop");
@@ -69,6 +89,9 @@ public class MenuUI : MonoBehaviour
         text.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
         text.alignment = TextAnchor.MiddleCenter;
         text.color = color;
+        var shadow = obj.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.55f);
+        shadow.effectDistance = new Vector2(2f, -2f);
         var rt = obj.GetComponent<RectTransform>();
         rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
         rt.anchoredPosition = pos;

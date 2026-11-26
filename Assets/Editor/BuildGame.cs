@@ -751,6 +751,31 @@ public static class BuildGame
         var menuCam = new GameObject("MenuCamera").AddComponent<Camera>();
         menuCam.tag = "MainCamera";
         menuCam.backgroundColor = new Color(0.35f, 0.65f, 0.95f);
+        menuCam.transform.position = new Vector3(3.4f, 1.9f, -4.6f);
+        menuCam.transform.LookAt(new Vector3(0f, 0.7f, 0f));
+        var menuSun = new GameObject("MenuSun").AddComponent<Light>();
+        menuSun.type = LightType.Directional;
+        menuSun.transform.rotation = Quaternion.Euler(38f, -32f, 0f);
+        menuSun.intensity = 2.6f;
+        var menuSpot = new GameObject("MenuSpot").AddComponent<Light>();
+        menuSpot.type = LightType.Spot;
+        menuSpot.transform.position = new Vector3(0f, 6f, -5f);
+        menuSpot.intensity = 260f;
+        menuSpot.spotAngle = 46f;
+        var menuKartPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/kartopia_kart.glb");
+        if (menuKartPrefab != null)
+        {
+            var platform = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            platform.name = "ShowroomPlatform";
+            platform.transform.position = new Vector3(0f, -0.35f, 0f);
+            platform.transform.localScale = new Vector3(4.6f, 0.3f, 4.6f);
+            platform.GetComponent<MeshRenderer>().sharedMaterial = Mat("ShowroomFloor", new Color(0.04f, 0.05f, 0.1f), 0.5f, 0.75f);
+            var showCar = Object.Instantiate(menuKartPrefab);
+            showCar.name = "ShowroomCar";
+            showCar.transform.position = new Vector3(0f, 0.02f, 0f);
+            showCar.transform.rotation = Quaternion.Euler(0f, 140f, 0f);
+            showCar.transform.localScale = Vector3.one * 1.5f;
+        }
         var menu = new GameObject("MainMenu").AddComponent<MenuUI>();
         menu.backdrop = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/keyart.png");
         menu.logo = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
@@ -778,8 +803,8 @@ public static class BuildGame
             EditorUtility.SetDirty(mobileRp);
         }
         Application.targetFrameRate = 60;
-        PlayerSettings.bundleVersion = "0.8.5";
-        PlayerSettings.Android.bundleVersionCode = 17;
+        PlayerSettings.bundleVersion = "0.8.6";
+        PlayerSettings.Android.bundleVersionCode = 18;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });

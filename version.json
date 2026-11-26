@@ -1,8 +1,8 @@
 {
-  "version": "0.8.5",
-  "versionCode": 17,
+  "version": "0.8.6",
+  "versionCode": 18,
   "apk": "KartopiaGP.apk",
-  "sha256": "572389f2377c294f3ffffbffb4a29cb62ff186ea6a3d309ed2c8664ef5195a4c",
-  "size": 49535557,
-  "notes": "Phone graphics fixed: full-resolution rendering (was 80%), MSAA x4, shadows to 130m; updater now retries, works without the menu canvas, and has a CHECK UPDATE button with feedback."
+  "sha256": "9bb72177edce06a97c306b2a69f2ea2dcf05ecb6ce4f015fa2be7889eaceb897",
+  "size": 49525275,
+  "notes": "Menu overhaul: 3D showroom kart rotating behind the menu, dim panel, outlined buttons, live version label."
 }
