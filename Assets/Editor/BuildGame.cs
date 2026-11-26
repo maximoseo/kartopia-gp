@@ -150,6 +150,11 @@ public static class BuildGame
             skyMat.SetFloat("_Exposure", 1.15f);
             RenderSettings.skybox = skyMat;
         }
+        RenderSettings.fog = true;
+        RenderSettings.fogMode = FogMode.Linear;
+        RenderSettings.fogColor = new Color(0.62f, 0.78f, 0.95f);
+        RenderSettings.fogStartDistance = 95f;
+        RenderSettings.fogEndDistance = 420f;
         RenderSettings.ambientSkyColor = new Color(0.45f, 0.62f, 0.9f);
         RenderSettings.ambientGroundColor = new Color(0.25f, 0.4f, 0.2f);
         RenderSettings.ambientIntensity = 1.1f;
@@ -174,6 +179,7 @@ public static class BuildGame
         if (waterTex != null) oceanMat.SetTextureScale("_BaseMap", new Vector2(22f, 22f));
         ocean.GetComponent<MeshRenderer>().sharedMaterial = oceanMat;
         ocean.GetComponent<Collider>().enabled = false;
+        ocean.AddComponent<WaterFlow>();
         var sandTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/sand.png");
         var sandMat = Mat("Beach", Color.white, 0f, 0.3f, sandTex);
         {
@@ -443,6 +449,77 @@ public static class BuildGame
             stand.transform.localScale = Vector3.one * 1.5f;
         }
 
+        // living crowds in the grandstands
+        var fanColors = new[] { new Color(1f, 0.35f, 0.3f), new Color(1f, 0.85f, 0.2f), new Color(0.3f, 0.6f, 1f), new Color(0.4f, 0.95f, 0.5f), new Color(1f, 1f, 1f) };
+        foreach (var standObj in GameObject.FindGameObjectsWithTag("Untagged"))
+        {
+            if (standObj.name != "Grandstand") continue;
+            for (int row = 0; row < 4; row++)
+                for (int seat = 0; seat < 9; seat++)
+                {
+                    if ((row * 7 + seat * 3) % 4 == 0) continue;
+                    var fan = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                    fan.name = "Fan";
+                    fan.transform.SetParent(standObj.transform);
+                    fan.transform.localPosition = new Vector3(-4.2f + seat * 1.05f, 1.15f + row * 0.62f, row * 1.05f);
+                    fan.transform.localScale = new Vector3(0.34f, 0.42f, 0.34f);
+                    fan.GetComponent<MeshRenderer>().sharedMaterial = Mat("Fan" + ((row + seat) % 5), fanColors[(row + seat) % 5], 0f, 0.5f);
+                    fan.GetComponent<Collider>().enabled = false;
+                    fan.AddComponent<CrowdBob>();
+                }
+        }
+        // bird flock circling the island
+        var birdMat = Mat("Bird", new Color(0.12f, 0.14f, 0.2f), 0f, 0.4f);
+        for (int b = 0; b < 5; b++)
+        {
+            var bird = new GameObject("Bird" + b);
+            var bodyB = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            bodyB.transform.SetParent(bird.transform);
+            bodyB.transform.localScale = new Vector3(0.32f, 0.22f, 0.55f);
+            bodyB.GetComponent<MeshRenderer>().sharedMaterial = birdMat;
+            bodyB.GetComponent<Collider>().enabled = false;
+            foreach (var sideW in new[] { -1f, 1f })
+            {
+                var wing = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                wing.name = sideW < 0 ? "WingL" : "WingR";
+                wing.transform.SetParent(bird.transform);
+                wing.transform.localPosition = new Vector3(sideW * 0.55f, 0.05f, 0f);
+                wing.transform.localScale = new Vector3(1.05f, 0.05f, 0.34f);
+                wing.GetComponent<MeshRenderer>().sharedMaterial = birdMat;
+                wing.GetComponent<Collider>().enabled = false;
+            }
+            var flock = bird.AddComponent<BirdFlock>();
+            flock.center = new Vector3(0f, 0f, 0f);
+            flock.radius = 68f + b * 5f;
+            flock.height = 27f + b * 1.6f;
+            flock.speed = 0.055f;
+            bird.transform.position = new Vector3(flock.radius, flock.height, b * 8f);
+        }
+        // dense bushes + flowers near the road
+        var bushMat = Mat("Bush", new Color(0.1f, 0.5f, 0.18f), 0f, 0.35f);
+        var flowerMats = new[] { Mat("FlowerA", new Color(1f, 0.3f, 0.5f), 0f, 0.5f), Mat("FlowerB", new Color(1f, 0.85f, 0.2f), 0f, 0.5f), Mat("FlowerC", new Color(0.7f, 0.4f, 1f), 0f, 0.5f) };
+        for (int i = 1; i < pts.Count; i += 2)
+        {
+            var tanV = (pts[(i + 1) % pts.Count] - pts[i]).normalized;
+            var sideV = new Vector3(tanV.z, 0f, -tanV.x).normalized;
+            float sV = (i % 4 == 1) ? -1f : 1f;
+            var bush = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            bush.name = "Bush";
+            bush.transform.position = pts[i] + sideV * (sV * (8.6f + (i % 3))) + Vector3.up * 0.35f;
+            bush.transform.localScale = new Vector3(1.5f + (i % 3) * 0.4f, 0.9f, 1.5f);
+            bush.GetComponent<MeshRenderer>().sharedMaterial = bushMat;
+            bush.GetComponent<Collider>().enabled = false;
+            if (i % 6 == 1)
+            {
+                var flower = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                flower.name = "Flower";
+                flower.transform.position = bush.transform.position + Vector3.up * 0.55f + sideV * 0.6f;
+                flower.transform.localScale = Vector3.one * 0.32f;
+                flower.GetComponent<MeshRenderer>().sharedMaterial = flowerMats[i % 3];
+                flower.GetComponent<Collider>().enabled = false;
+            }
+        }
+
         var kartPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/kartopia_kart.glb");
         var gridTan = (pts[4] - pts[0]).normalized;
         var gridRot = Quaternion.LookRotation(new Vector3(gridTan.x, 0f, gridTan.z).normalized);
@@ -504,8 +581,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.6.0";
-        PlayerSettings.Android.bundleVersionCode = 9;
+        PlayerSettings.bundleVersion = "0.6.1";
+        PlayerSettings.Android.bundleVersionCode = 10;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });

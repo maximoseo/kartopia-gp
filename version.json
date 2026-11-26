@@ -1,8 +1,8 @@
 {
-  "version": "0.6.0",
-  "versionCode": 9,
+  "version": "0.6.1",
+  "versionCode": 10,
   "apk": "KartopiaGP.apk",
-  "sha256": "3709ee012af959af8888d9b526da6ea824282eb9437b3d5295fea939013a4aa6",
-  "size": 47858005,
-  "notes": "Blender-baked grass/sand/water textures, Blender beach huts and rock formations around the circuit."
+  "sha256": "5886f6c56c3960fa240a8e1409ef716131643643916557bfa1f19ad0105efb0a",
+  "size": 48084965,
+  "notes": "Living backgrounds: animated grandstand crowds, bird flock, flowing water, dense bushes and flowers, distance fog."
 }
