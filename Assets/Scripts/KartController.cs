@@ -12,6 +12,9 @@ public class KartController : MonoBehaviour
     public float boostDuration = 0.85f;
     public float boostAccel = 14f;
     public float lateralGripRetention = 0.75f;
+    public AudioClip engineClip;
+    AudioSource _engine;
+    ParticleSystem _smoke;
     public bool boostDisabled;
 
     Rigidbody rb;
@@ -21,6 +24,8 @@ public class KartController : MonoBehaviour
     bool wasDrifting;
 
     public bool BoostActive => boostTime > 0f;
+
+    bool driftingNow() => _visual != null && driftCharge > 0.02f;
 
     public void GiveBoost(float seconds = 0.9f) => boostTime = Mathf.Max(boostTime, seconds);
 
@@ -42,6 +47,24 @@ public class KartController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         _visual = transform.Find("KartModel");
+        if (engineClip != null)
+        {
+            _engine = gameObject.AddComponent<AudioSource>();
+            _engine.clip = engineClip; _engine.loop = true; _engine.volume = 0.0f;
+            _engine.Play();
+        }
+        var smokeObj = new GameObject("DriftSmoke");
+        smokeObj.transform.SetParent(transform);
+        smokeObj.transform.localPosition = new Vector3(0f, 0.25f, -1.0f);
+        _smoke = smokeObj.AddComponent<ParticleSystem>();
+        var main = _smoke.main;
+        main.startLifetime = 0.55f; main.startSpeed = 1.2f; main.startSize = 0.55f;
+        main.startColor = new Color(1f, 1f, 1f, 0.5f); main.maxParticles = 90;
+        var emission = _smoke.emission; emission.rateOverTime = 0f;
+        var shape = _smoke.shape; shape.shapeType = ParticleSystemShapeType.Sphere; shape.radius = 0.4f;
+        var smokeRenderer = smokeObj.GetComponent<ParticleSystemRenderer>();
+        smokeRenderer.material = new Material(Shader.Find("Particles/Standard Unlit"));
+        _smoke.Stop();
     }
 
     void FixedUpdate()
@@ -64,6 +87,20 @@ public class KartController : MonoBehaviour
             steer = Mathf.Clamp((pos.x / Mathf.Max(Screen.width, 1) - 0.5f) * 2.4f, -1f, 1f);
         }
 
+        if (_engine != null)
+        {
+            float sr = Mathf.Clamp01(Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.forward)) / Mathf.Max(maxSpeed, 1f));
+            _engine.pitch = 0.75f + sr * 0.95f;
+            _engine.volume = 0.12f + Mathf.Abs(throttle) * 0.2f;
+        }
+        if (_smoke != null)
+        {
+            var emission = _smoke.emission;
+            bool emit = driftingNow();
+            emission.rateOverTime = emit ? 42f : 0f;
+            if (emit && !_smoke.isPlaying) _smoke.Play();
+            if (!emit && _smoke.isPlaying) { /* let particles fade */ }
+        }
         var fwdSpeed = Vector3.Dot(rb.linearVelocity, transform.forward);
         bool drifting = drift && fwdSpeed > 8f;
         if (drifting && !boostDisabled) driftCharge += Time.fixedDeltaTime;

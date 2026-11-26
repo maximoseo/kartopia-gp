@@ -8,7 +8,7 @@ public class Hud : MonoBehaviour
     public KartController kart;
     public Rigidbody kartBody;
 
-    Text _posText, _timeText, _speedText, _centerText, _resultsText;
+    Text _posText, _timeText, _speedText, _centerText, _resultsText, _standingsText;
     Image _boostFill;
     GameObject _resultsPanel;
 
@@ -21,6 +21,8 @@ public class Hud : MonoBehaviour
         canvasObj.AddComponent<GraphicRaycaster>();
 
         _posText = MakeText(canvasObj.transform, "POS", new Vector2(0.5f, 1f), new Vector2(-160f, -30f), 44);
+        _standingsText = MakeText(canvasObj.transform, "STANDINGS", new Vector2(0f, 1f), new Vector2(95f, -110f), 22);
+        _standingsText.alignment = TextAnchor.UpperLeft;
         _timeText = MakeText(canvasObj.transform, "TIME", new Vector2(0.5f, 1f), new Vector2(60f, -30f), 26);
         _speedText = MakeText(canvasObj.transform, "SPEED", new Vector2(1f, 0f), new Vector2(-150f, 95f), 52);
         _centerText = MakeText(canvasObj.transform, "CENTER", new Vector2(0.5f, 0.55f), Vector2.zero, 90);
@@ -77,6 +79,7 @@ public class Hud : MonoBehaviour
     {
         if (race == null) return;
         _posText.text = $"P{race.PlayerPosition()} / {race.RacerCount}  LAP {race.PlayerLapDisplay}/{race.totalLaps}";
+        if (_standingsText != null) _standingsText.text = race.StandingsText();
         _timeText.text = RaceManager.FormatTime(race.RaceTime);
         if (kartBody != null)
             _speedText.text = $"{Mathf.RoundToInt(kartBody.linearVelocity.magnitude * 3.6f)}";

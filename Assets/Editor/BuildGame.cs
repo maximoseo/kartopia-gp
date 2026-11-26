@@ -62,6 +62,13 @@ public static class BuildGame
         obj.AddComponent<MeshCollider>().sharedMesh = mesh;
     }
 
+    static readonly Color[] KartPaintColors =
+    {
+        new Color(0.91f, 0.22f, 0.16f), new Color(0.15f, 0.5f, 0.95f),
+        new Color(0.2f, 0.8f, 0.35f), new Color(0.98f, 0.65f, 0.1f)
+    };
+    static int _kartPaintIndex;
+
     static GameObject MakeKart(string name, GameObject prefab, Vector3 pos, Quaternion rot)
     {
         var kart = new GameObject(name);
@@ -83,6 +90,7 @@ public static class BuildGame
             model.transform.localScale = Vector3.one * 1.15f;
             var tyreMat = Mat("KartTyre", new Color(0.015f, 0.015f, 0.018f), 0f, 0.25f);
             var rimMat = Mat("KartRim", new Color(0.75f, 0.78f, 0.82f), 0.85f, 0.45f);
+            var paintColor = KartPaintColors[_kartPaintIndex++ % KartPaintColors.Length];
             foreach (var renderer in model.GetComponentsInChildren<MeshRenderer>(true))
             {
                 string objectName = renderer.gameObject.name;
@@ -90,6 +98,12 @@ public static class BuildGame
                     renderer.sharedMaterial = tyreMat;
                 else if (objectName.StartsWith("Wheel_"))
                     renderer.sharedMaterial = rimMat;
+                else if (renderer.sharedMaterial != null && renderer.sharedMaterial.name.Contains("KartPaint"))
+                {
+                    var tinted = new Material(renderer.sharedMaterial);
+                    tinted.SetColor("_BaseColor", paintColor);
+                    renderer.sharedMaterial = tinted;
+                }
             }
         }
         return kart;
@@ -168,6 +182,15 @@ public static class BuildGame
             post.transform.localScale = new Vector3(0.4f, 3.4f, 0.4f);
             post.GetComponent<MeshRenderer>().sharedMaterial = archMat;
             var pc2 = post.GetComponent<Collider>(); if (pc2 != null) pc2.enabled = false;
+        }
+        var gantryPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/start_gantry.glb");
+        if (gantryPrefab != null)
+        {
+            var gantry = Object.Instantiate(gantryPrefab);
+            gantry.name = "StartGantry";
+            gantry.transform.position = pts[2] + Vector3.up * 0.02f;
+            gantry.transform.rotation = Quaternion.LookRotation((pts[4] - pts[0]).normalized);
+            gantry.transform.localScale = Vector3.one * 1.02f;
         }
         var banner = GameObject.CreatePrimitive(PrimitiveType.Cube);
         banner.name = "ArchBanner";
@@ -290,7 +313,8 @@ public static class BuildGame
         var gridSide = new Vector3(gridTan.z, 0f, -gridTan.x).normalized;
 
         var player = MakeKart("Kart", kartPrefab, pts[2] + Vector3.up * 0.55f - gridTan * 5f, gridRot);
-        player.AddComponent<KartController>();
+        var playerController = player.AddComponent<KartController>();
+        playerController.engineClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/engine_loop.wav");
 
         var aiNames = new[] { "RUBY", "MINT", "SUNNY" };
         var aiCars = new List<Transform>();
@@ -344,8 +368,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.2.1";
-        PlayerSettings.Android.bundleVersionCode = 3;
+        PlayerSettings.bundleVersion = "0.3.0";
+        PlayerSettings.Android.bundleVersionCode = 4;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });

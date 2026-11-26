@@ -71,6 +71,21 @@ public class RaceManager : MonoBehaviour
         }
     }
 
+    public string StandingsText()
+    {
+        var rows = new System.Collections.Generic.List<(string name, float prog)>
+            { ("YOU", _playerProgress) };
+        var names = new[] { "RUBY", "MINT", "SUNNY" };
+        for (int i = 0; i < aiCars.Count; i++)
+            if (aiCars[i].TryGetComponent<AiDriver>(out var d))
+                rows.Add((i < names.Length ? names[i] : $"AI{i + 1}", d.ProgressMeters));
+        rows.Sort((a, b) => b.prog.CompareTo(a.prog));
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < rows.Count; i++)
+            sb.AppendLine($"{i + 1}  {rows[i].name}");
+        return sb.ToString();
+    }
+
     public int PlayerPosition()
     {
         int pos = 1;

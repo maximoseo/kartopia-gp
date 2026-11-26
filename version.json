@@ -1,8 +1,8 @@
 {
-  "version": "0.2.1",
-  "versionCode": 3,
+  "version": "0.3.0",
+  "versionCode": 4,
   "apk": "KartopiaGP.apk",
-  "sha256": "a8726fa41de38795f640f0cdfda452132165e9dfc2309a674173c6359814cabf",
-  "size": 43869324,
-  "notes": "New phone launcher logo (Higgsfield kart mascot) + in-menu logo."
+  "sha256": "875ace0070c5a653b32ee4af3a8b419830bdb1ea96728aa5ae342d91a20e71ff",
+  "size": 44784777,
+  "notes": "Blender start gantry with start lights, per-racer paint colors, drift smoke particles, live standings tower, Higgsfield engine audio."
 }
