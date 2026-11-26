@@ -258,53 +258,54 @@ public static class BuildGame
             peel.AddComponent<BananaPeel>();
         }
 
-        // palms + candy hills + clouds
-        var trunkMat = Mat("Trunk", new Color(0.4f, 0.26f, 0.14f), 0f, 0.3f);
-        var leafMat = Mat("Leaves", new Color(0.12f, 0.55f, 0.22f), 0f, 0.3f);
+        var palmPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/palm_tree.glb");
+        var hillPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/candy_hill.glb");
+        var cloudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/cloud_cluster.glb");
+        var standPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/grandstand.glb");
+        // Blender environment kit: palms, candy hills, clouds, grandstands
         for (int i = 0; i < pts.Count; i += 6)
         {
-            var tan = (pts[(i + 1) % pts.Count] - pts[i]).normalized;
-            var side = new Vector3(tan.z, 0f, -tan.x).normalized;
+            if (palmPrefab == null) break;
+            var tanP = (pts[(i + 1) % pts.Count] - pts[i]).normalized;
+            var sideP = new Vector3(tanP.z, 0f, -tanP.x).normalized;
             float s = (i % 12 == 0) ? -1f : 1f;
-            var basePos = pts[i] + side * (s * 10.5f);
-            var trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            trunk.name = "PalmTrunk";
-            trunk.transform.position = basePos + Vector3.up * 2.2f;
-            trunk.transform.rotation = Quaternion.Euler(s * 7f, 0f, 0f);
-            trunk.transform.localScale = new Vector3(0.35f, 2.4f, 0.35f);
-            trunk.GetComponent<MeshRenderer>().sharedMaterial = trunkMat;
-            var tc = trunk.GetComponent<Collider>(); if (tc != null) tc.enabled = false;
-            for (int k = 0; k < 3; k++)
-            {
-                var leaf = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                leaf.name = "PalmLeaf";
-                leaf.transform.position = basePos + Vector3.up * 4.6f + new Vector3(Mathf.Sin(k * 2.1f) * 1.1f, 0.25f * k, Mathf.Cos(k * 2.1f) * 1.1f);
-                leaf.transform.localScale = new Vector3(1.7f, 0.65f, 1.7f);
-                leaf.GetComponent<MeshRenderer>().sharedMaterial = leafMat;
-                var lc = leaf.GetComponent<Collider>(); if (lc != null) lc.enabled = false;
-            }
+            var palm = Object.Instantiate(palmPrefab);
+            palm.name = "PalmTree";
+            palm.transform.position = pts[i] + sideP * (s * 10.5f);
+            palm.transform.rotation = Quaternion.Euler(0f, i * 37f, 0f);
+            palm.transform.localScale = Vector3.one * (1.15f + (i % 3) * 0.18f);
         }
-        var hillMats = new[] { Mat("HillPink", new Color(0.9f, 0.45f, 0.6f), 0f, 0.25f), Mat("HillMint", new Color(0.35f, 0.8f, 0.6f), 0f, 0.25f), Mat("HillSky", new Color(0.4f, 0.6f, 0.95f), 0f, 0.25f) };
         for (int i = 0; i < 6; i++)
         {
+            if (hillPrefab == null) break;
             float a = i / 6f * Mathf.PI * 2f + 0.4f;
-            var hill = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var hill = Object.Instantiate(hillPrefab);
             hill.name = "CandyHill";
-            hill.transform.position = new Vector3(Mathf.Cos(a) * 128f, -7f, Mathf.Sin(a) * 128f);
-            hill.transform.localScale = new Vector3(52f, 22f, 52f);
-            hill.GetComponent<MeshRenderer>().sharedMaterial = hillMats[i % 3];
-            var hc = hill.GetComponent<Collider>(); if (hc != null) hc.enabled = false;
+            hill.transform.position = new Vector3(Mathf.Cos(a) * 128f, -1.2f, Mathf.Sin(a) * 128f);
+            hill.transform.rotation = Quaternion.Euler(0f, i * 53f, 0f);
+            hill.transform.localScale = Vector3.one * (5.2f + (i % 3) * 1.1f);
         }
-        var cloudMat = Mat("Cloud", new Color(1f, 1f, 1f), 0f, 0.15f);
         for (int i = 0; i < 7; i++)
         {
+            if (cloudPrefab == null) break;
             float a = i / 7f * Mathf.PI * 2f + 0.9f;
-            var cloud = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            cloud.name = "Cloud";
+            var cloud = Object.Instantiate(cloudPrefab);
+            cloud.name = "CloudCluster";
             cloud.transform.position = new Vector3(Mathf.Cos(a) * 95f, 26f + (i % 3) * 4f, Mathf.Sin(a) * 95f);
-            cloud.transform.localScale = new Vector3(13f, 3.6f, 8f);
-            cloud.GetComponent<MeshRenderer>().sharedMaterial = cloudMat;
-            var cc = cloud.GetComponent<Collider>(); if (cc != null) cc.enabled = false;
+            cloud.transform.rotation = Quaternion.Euler(0f, i * 41f, 0f);
+            cloud.transform.localScale = Vector3.one * 3.4f;
+        }
+        for (int i = 0; i < 2; i++)
+        {
+            if (standPrefab == null) break;
+            int at = i == 0 ? 14 : 52;
+            var tanS = (pts[(at + 1) % pts.Count] - pts[at]).normalized;
+            var sideS = new Vector3(tanS.z, 0f, -tanS.x).normalized;
+            var stand = Object.Instantiate(standPrefab);
+            stand.name = "Grandstand";
+            stand.transform.position = pts[at] + sideS * -16f;
+            stand.transform.rotation = Quaternion.LookRotation(sideS);
+            stand.transform.localScale = Vector3.one * 1.5f;
         }
 
         var kartPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/kartopia_kart.glb");
@@ -368,8 +369,8 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.3.1";
-        PlayerSettings.Android.bundleVersionCode = 5;
+        PlayerSettings.bundleVersion = "0.3.2";
+        PlayerSettings.Android.bundleVersionCode = 6;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });
