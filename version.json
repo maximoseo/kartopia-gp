@@ -1,8 +1,8 @@
 {
-  "version": "0.8.4",
-  "versionCode": 16,
+  "version": "0.8.5",
+  "versionCode": 17,
   "apk": "KartopiaGP.apk",
-  "sha256": "037c62ee28dc614de6c3232d41554192ef2c6b5923e2f9abf1a80370cef142a7",
-  "size": 49530389,
-  "notes": "Full in-app updates: in-game download with progress, SHA-256 verification, and Android installer hand-off via FileProvider."
+  "sha256": "572389f2377c294f3ffffbffb4a29cb62ff186ea6a3d309ed2c8664ef5195a4c",
+  "size": 49535557,
+  "notes": "Phone graphics fixed: full-resolution rendering (was 80%), MSAA x4, shadows to 130m; updater now retries, works without the menu canvas, and has a CHECK UPDATE button with feedback."
 }

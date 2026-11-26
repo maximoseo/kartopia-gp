@@ -37,9 +37,17 @@ public class Updater : MonoBehaviour
 
     string ApkFilePath => Path.Combine(Application.persistentDataPath, ApkPathName);
 
+    bool _manualCheck;
+
     void Start()
     {
         if (File.Exists(ApkFilePath)) File.Delete(ApkFilePath);
+        StartCoroutine(Check());
+    }
+
+    public void CheckNow(bool manual)
+    {
+        _manualCheck = manual;
         StartCoroutine(Check());
     }
 
@@ -58,17 +66,59 @@ public class Updater : MonoBehaviour
 
     IEnumerator Check()
     {
-        using var req = UnityWebRequest.Get(ManifestUrl);
-        req.timeout = 10;
-        yield return req.SendWebRequest();
-        if (req.result != UnityWebRequest.Result.Success) yield break;
-        var manifest = JsonUtility.FromJson<Manifest>(req.downloadHandler.text);
-        if (manifest == null || string.IsNullOrEmpty(manifest.version)) yield break;
-        if (CompareVersions(manifest.version, Application.version) <= 0) yield break;
+        Manifest manifest = null;
+        for (int attempt = 0; attempt < 3 && manifest == null; attempt++)
+        {
+            using var req = UnityWebRequest.Get(ManifestUrl);
+            req.timeout = 12;
+            yield return req.SendWebRequest();
+            if (req.result == UnityWebRequest.Result.Success)
+                manifest = JsonUtility.FromJson<Manifest>(req.downloadHandler.text);
+            if (manifest == null && attempt < 2)
+                yield return new WaitForSeconds(4f);
+        }
+        if (manifest == null || string.IsNullOrEmpty(manifest.version))
+        {
+            if (_manualCheck) ShowToast($"Update check failed. Check your connection.\nYou have v{Application.version}");
+            yield break;
+        }
+        if (CompareVersions(manifest.version, Application.version) <= 0)
+        {
+            if (_manualCheck) ShowToast($"You're up to date (v{Application.version})");
+            yield break;
+        }
         _offer = manifest;
         ShowPanel(
             $"UPDATE AVAILABLE\nKartopia GP v{manifest.version} (you have v{Application.version})\n{manifest.notes}",
             "DOWNLOAD", StartDownload);
+    }
+
+    void ShowToast(string message)
+    {
+        var canvas = EnsureCanvas();
+        var obj = new GameObject("UpdateToast");
+        obj.transform.SetParent(canvas.transform);
+        var img = obj.AddComponent<Image>(); img.color = new Color(0.02f, 0.03f, 0.08f, 0.92f);
+        var rt = obj.GetComponent<RectTransform>();
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(560f, 120f);
+        MakeText(obj.transform, message, Vector2.zero, new Vector2(520f, 100f), 22);
+        Destroy(obj, 3.5f);
+    }
+
+    Canvas EnsureCanvas()
+    {
+        var canvas = FindFirstObjectByType<Canvas>();
+        if (canvas != null) return canvas;
+        var obj = new GameObject("UpdaterCanvas");
+        canvas = obj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 500;
+        var scaler = obj.AddComponent<UnityEngine.UI.CanvasScaler>();
+        scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1280, 720);
+        obj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+        return canvas;
     }
 
     void StartDownload()
@@ -161,8 +211,7 @@ public class Updater : MonoBehaviour
 
     void ShowPanel(string body, string primaryLabel, UnityEngine.Events.UnityAction primaryAction)
     {
-        var canvas = FindFirstObjectByType<Canvas>();
-        if (canvas == null) return;
+        var canvas = EnsureCanvas();
         if (_panel != null) Destroy(_panel);
         _panel = new GameObject("UpdatePanel");
         _panel.transform.SetParent(canvas.transform);

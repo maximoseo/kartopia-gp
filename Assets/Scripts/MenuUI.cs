@@ -49,6 +49,13 @@ public class MenuUI : MonoBehaviour
         var canyon = MakeButton(canvasObj.transform, "CANDY CANYON", new Vector2(200f, -40f));
         canyon.onClick.AddListener(() => SceneManager.LoadScene("CanyonTrack"));
         MakeText(canvasObj.transform, "WASD / Arrows - drive   SPACE - drift   Touch - steer", 20, new Vector2(0f, -300f), new Color(1, 1, 1, 0.8f), false);
+        var checkBtn = MakeButton(canvasObj.transform, "CHECK UPDATE", new Vector2(0f, -225f));
+        checkBtn.GetComponent<RectTransform>().sizeDelta = new Vector2(300f, 56f);
+        checkBtn.onClick.AddListener(() =>
+        {
+            var updater = FindFirstObjectByType<Updater>();
+            if (updater != null) updater.CheckNow(true);
+        });
     }
 
     Text MakeText(Transform parent, string content, int size, Vector2 pos, Color color, bool bold)

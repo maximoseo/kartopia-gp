@@ -764,8 +764,22 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/CanyonTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.8.4";
-        PlayerSettings.Android.bundleVersionCode = 16;
+        // Android was rendering at 80% scale with no MSAA and 50m shadows
+        // (Mobile_RPAsset defaults) - that is why phones looked soft.
+        var mobileRp = AssetDatabase.LoadAssetAtPath<UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset>("Assets/Settings/Mobile_RPAsset.asset");
+        if (mobileRp != null)
+        {
+            var so = new SerializedObject(mobileRp);
+            so.FindProperty("m_RenderScale").floatValue = 1.0f;
+            so.FindProperty("m_MSAA").intValue = 4;
+            so.FindProperty("m_ShadowDistance").floatValue = 130f;
+            so.FindProperty("m_ShadowCascadeCount").intValue = 2;
+            so.ApplyModifiedProperties();
+            EditorUtility.SetDirty(mobileRp);
+        }
+        Application.targetFrameRate = 60;
+        PlayerSettings.bundleVersion = "0.8.5";
+        PlayerSettings.Android.bundleVersionCode = 17;
         var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         if (appIcon != null)
             PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });
