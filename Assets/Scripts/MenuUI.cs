@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class MenuUI : MonoBehaviour
 {
     public Texture2D backdrop;
+    public Texture2D logo;
 
     void Start()
     {
@@ -31,8 +32,18 @@ public class MenuUI : MonoBehaviour
             rt.offsetMin = rt.offsetMax = Vector2.zero;
             bg.transform.SetAsFirstSibling();
         }
-        MakeText(canvasObj.transform, "KARTOPIA GP", 96, new Vector2(0f, 170f), new Color(1f, 0.8f, 0.15f), true);
-        MakeText(canvasObj.transform, "3 LAPS - DRIFT BOOST - ITEM BOXES", 26, new Vector2(0f, 105f), Color.white, false);
+        if (logo != null)
+        {
+            var logoObj = new GameObject("Logo");
+            logoObj.transform.SetParent(canvasObj.transform);
+            var raw = logoObj.AddComponent<RawImage>(); raw.texture = logo;
+            var lrt = logoObj.GetComponent<RectTransform>();
+            lrt.anchorMin = lrt.anchorMax = new Vector2(0.5f, 0.5f);
+            lrt.anchoredPosition = new Vector2(0f, 205f);
+            lrt.sizeDelta = new Vector2(240f, 240f);
+        }
+        MakeText(canvasObj.transform, "KARTOPIA GP", 72, new Vector2(0f, 62f), new Color(1f, 0.8f, 0.15f), true);
+        MakeText(canvasObj.transform, "3 LAPS - DRIFT BOOST - ITEM BOXES", 24, new Vector2(0f, 14f), Color.white, false);
         var start = MakeButton(canvasObj.transform, "START RACE", new Vector2(0f, -40f));
         start.onClick.AddListener(() => SceneManager.LoadScene("KartTrack"));
         MakeText(canvasObj.transform, "WASD / Arrows - drive   SPACE - drift   Touch - steer", 20, new Vector2(0f, -300f), new Color(1, 1, 1, 0.8f), false);

@@ -334,6 +334,7 @@ public static class BuildGame
         menuCam.backgroundColor = new Color(0.35f, 0.65f, 0.95f);
         var menu = new GameObject("MainMenu").AddComponent<MenuUI>();
         menu.backdrop = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/keyart.png");
+        menu.logo = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
         new GameObject("Updater").AddComponent<Updater>();
         EditorSceneManager.SaveScene(menuScene, "Assets/Scenes/MainMenu.unity");
 
@@ -343,8 +344,11 @@ public static class BuildGame
             new EditorBuildSettingsScene("Assets/Scenes/KartTrack.unity", true)
         };
 
-        PlayerSettings.bundleVersion = "0.2.0";
-        PlayerSettings.Android.bundleVersionCode = 2;
+        PlayerSettings.bundleVersion = "0.2.1";
+        PlayerSettings.Android.bundleVersionCode = 3;
+        var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/icon_1024.png");
+        if (appIcon != null)
+            PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Android, new[] { appIcon });
         PlayerSettings.companyName = "MaximoSEO";
         PlayerSettings.productName = "Kartopia GP";
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "com.maximoseo.kartopia");
